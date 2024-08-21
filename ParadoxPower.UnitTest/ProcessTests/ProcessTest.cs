@@ -32,4 +32,11 @@ public class ProcessTest
         
         Assert.That(_root.Leaf("key1").Value.Value.ToRawString(), Is.EqualTo(newValue));
     }
+    
+    [Test]
+    public void LeavesTest()
+    {
+        Assert.That(_root.Leaves.Count(), Is.EqualTo(1));
+        Assert.That(_root.LeavesOnlyRead.Count, Is.EqualTo(1));
+    }
 }
