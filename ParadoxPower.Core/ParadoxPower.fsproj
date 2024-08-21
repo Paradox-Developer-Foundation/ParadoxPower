@@ -3,11 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Title>ParadoxPower</Title>
+    <Version>0.1.0-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Utilities/Position.fs" />
-      <Compile Include="Utilities/Position.fs" />
       <Compile Include="Utilities/Utilities.fs" />
       <Compile Include="Common/Constants.fs" />
       <Compile Include="Common/HOI4Constants.fs" />

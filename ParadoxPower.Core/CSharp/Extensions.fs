@@ -14,7 +14,7 @@ type Extensions =
     static member inline Nodes(obj: IEnumerable<Child>) =
         obj
         |> Seq.choose (function
-            | NodeC c -> Some c
+            | NodeChild c -> Some c
             | _ -> None)
 
     /// Filter to just Leaves
@@ -22,7 +22,7 @@ type Extensions =
     static member inline Leaves(obj: IEnumerable<Child>) =
         obj
         |> Seq.choose (function
-            | LeafC c -> Some c
+            | LeafChild c -> Some c
             | _ -> None)
 
     /// Filter to just LeafValues
@@ -30,7 +30,7 @@ type Extensions =
     static member inline LeafValues(obj: IEnumerable<Child>) =
         obj
         |> Seq.choose (function
-            | LeafValueC c -> Some c
+            | LeafValueChild c -> Some c
             | _ -> None)
 
     /// Filter to just Comments
@@ -38,7 +38,7 @@ type Extensions =
     static member inline Comments(obj: IEnumerable<Child>) =
         obj
         |> Seq.choose (function
-            | CommentC c -> Some c
+            | CommentChild c -> Some c
             | _ -> None)
 
     /// Retrieve result or null (if failure)

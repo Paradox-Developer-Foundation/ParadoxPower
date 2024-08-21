@@ -13,8 +13,8 @@ type StatementVisitor() =
 
     member this.Visit(x: Child) : Unit =
         match x with
-        | NodeC n -> this.Visit(n)
-        | LeafC l -> this.Visit(l)
-        | LeafValueC lv -> this.Visit(lv)
-        | ValueClauseC vc -> this.Visit(vc)
-        | CommentC(r, c) -> this.Visit((r, c))
+        | NodeChild n -> this.Visit(n)
+        | LeafChild l -> this.Visit(l)
+        | LeafValueChild lv -> this.Visit(lv)
+        | ValueClauseChild vc -> this.Visit(vc)
+        | CommentChild(r, c) -> this.Visit((r, c))

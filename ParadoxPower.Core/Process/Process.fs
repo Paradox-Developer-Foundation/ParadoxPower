@@ -1,6 +1,7 @@
 namespace ParadoxPower.Process
 
 open System
+open System.Collections.Generic
 open ParadoxPower.Common
 open ParadoxPower.Parser
 open ParadoxPower.Parser.Types
@@ -58,13 +59,11 @@ type IClause =
 
 and Leaf =
     val mutable KeyId: StringTokens
-    // val mutable Key : string
     val mutable private _valueId: StringTokens
     val mutable private _value: Value
     val mutable Position: Range
     val mutable Operator: Operator
     val mutable Trivia: Trivia option
-
 
     member this.Key
         with get () = StringResource.stringManager.GetStringForID(this.KeyId.normal).Trim quoteCharArray
@@ -96,7 +95,7 @@ and Leaf =
         let (KeyValueItem(Key(key), value, op)) = keyvalueitem
         Leaf(key, value, pos |> Option.defaultValue Range.Zero, op)
 
-    static member Create key value = LeafC(Leaf(key, value))
+    static member Create key value = LeafChild(Leaf(key, value))
 
     interface IKeyPos with
         member this.Key = this.Key
@@ -111,7 +110,6 @@ and LeafValue(value: Value, ?pos: Range) =
     member val Trivia: Trivia option = None with get, set
     member val ValueId = StringResource.stringManager.InternIdentifierToken(value.ToString()) with get, set
     member val private _value = value with get, set
-    // val mutable private _value : Value = value
     member this.Value
         with get () = this._value
         and set value =
@@ -139,11 +137,11 @@ and LeafValue(value: Value, ?pos: Range) =
 
 
 and [<Struct>] Child =
-    | NodeC of node: Node
-    | LeafC of leaf: Leaf
-    | CommentC of comment: (Range * string)
-    | LeafValueC of leafvalue: LeafValue
-    | ValueClauseC of valueclause: ValueClause
+    | NodeChild of node: Node
+    | LeafChild of leaf: Leaf
+    | CommentChild of comment: (Range * string)
+    | LeafValueChild of leafvalue: LeafValue
+    | ValueClauseChild of valueclause: ValueClause
 
 and ValueClause(keys: Value[], pos: Range) =
     let mutable _keys =
@@ -152,8 +150,8 @@ and ValueClause(keys: Value[], pos: Range) =
 
     let bothFind (x: string) =
         function
-        | NodeC n when n.Key == x -> true
-        | LeafC l when l.Key == x -> true
+        | NodeChild n when n.Key == x -> true
+        | LeafChild l when l.Key == x -> true
         | _ -> false
 
     let mutable all: Child array = Array.empty
@@ -164,7 +162,7 @@ and ValueClause(keys: Value[], pos: Range) =
             lazy
                 (all
                  |> Array.choose (function
-                     | LeafC l -> Some l
+                     | LeafChild l -> Some l
                      | _ -> None))
 
     let leaves () = _leaves.Force()
@@ -200,7 +198,7 @@ and ValueClause(keys: Value[], pos: Range) =
     member this.Nodes =
         all
         |> Seq.choose (function
-            | NodeC n -> Some n
+            | NodeChild n -> Some n
             | _ -> None)
 
     member this.Children = this.Nodes |> List.ofSeq
@@ -208,7 +206,7 @@ and ValueClause(keys: Value[], pos: Range) =
     member this.Leaves =
         all
         |> Seq.choose (function
-            | LeafC l -> Some l
+            | LeafChild l -> Some l
             | _ -> None)
 
     member this.Values = this.Leaves |> List.ofSeq
@@ -216,26 +214,26 @@ and ValueClause(keys: Value[], pos: Range) =
     member this.Comments =
         all
         |> Seq.choose (function
-            | CommentC c -> Some c
+            | CommentChild c -> Some c
             | _ -> None)
 
     member this.LeafValues =
         all
         |> Seq.choose (function
-            | LeafValueC lv -> Some lv
+            | LeafValueChild lv -> Some lv
             | _ -> None)
 
     member this.ValueClauses =
         all
         |> Seq.choose (function
-            | ValueClauseC vc -> Some vc
+            | ValueClauseChild vc -> Some vc
             | _ -> None)
 
     member this.Clauses =
         all
         |> Seq.choose (function
-            | ValueClauseC vc -> Some(vc :> IClause)
-            | NodeC n -> Some(n :> IClause)
+            | ValueClauseChild vc -> Some(vc :> IClause)
+            | NodeChild n -> Some(n :> IClause)
             | _ -> None)
 
     member this.Has x = all |> (Seq.exists (bothFind x))
@@ -310,17 +308,17 @@ and ValueClause(keys: Value[], pos: Range) =
     member this.ToRaw: Statement list =
         this.All
         |> List.collect (function
-            | NodeC n -> [ n.ToRaw ]
-            | LeafValueC lv -> [ lv.ToRaw ]
-            | LeafC l -> [ l.ToRaw ]
-            | ValueClauseC vc ->
+            | NodeChild n -> [ n.ToRaw ]
+            | LeafValueChild lv -> [ lv.ToRaw ]
+            | LeafChild l -> [ l.ToRaw ]
+            | ValueClauseChild vc ->
                 let keys =
                     vc.Keys
                     |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
                     |> List.ofArray
 
                 keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-            | CommentC(r, c) -> [ (Comment(r, c)) ])
+            | CommentChild(r, c) -> [ (Comment(r, c)) ])
 
     static member Create() = ValueClause()
 
@@ -350,30 +348,30 @@ and ValueClause(keys: Value[], pos: Range) =
 
 
 and Node(key: string, pos: Range) =
-    let bothFind (x: string) =
+    let bothFind (key: string) =
         function
-        | NodeC n when n.Key == x -> true
-        | LeafC l when l.Key == x -> true
+        | NodeChild n when n.Key == key -> true
+        | LeafChild l when l.Key == key -> true
         | _ -> false
 
     let bothFindId (x: StringLowerToken) =
         function
-        | NodeC n when n.KeyId.lower = x -> true
-        | LeafC l when l.KeyId.lower = x -> true
+        | NodeChild n when n.KeyId.lower = x -> true
+        | LeafChild l when l.KeyId.lower = x -> true
         | _ -> false
 
     let mutable all: Child array = Array.empty
     let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
 
-    let reset () =
+    let reset() =
         _leaves <-
             lazy
                 (all
                  |> Array.choose (function
-                     | LeafC l -> Some l
+                     | LeafChild l -> Some l
                      | _ -> None))
 
-    let leaves () = _leaves.Force()
+    let getLeaves() = _leaves.Force()
 
     do reset ()
 
@@ -438,7 +436,7 @@ and Node(key: string, pos: Range) =
     member this.Nodes =
         all
         |> Seq.choose (function
-            | NodeC n -> Some n
+            | NodeChild n -> Some n
             | _ -> None)
 
     member this.Children = this.Nodes |> List.ofSeq
@@ -446,67 +444,70 @@ and Node(key: string, pos: Range) =
     member this.Leaves =
         all
         |> Seq.choose (function
-            | LeafC l -> Some l
+            | LeafChild l -> Some l
             | _ -> None)
-
+    
+    member this.LeavesOnlyRead : IReadOnlyCollection<Leaf> =
+        getLeaves();
+    
     member this.Values = this.Leaves |> List.ofSeq
 
     member this.Comments =
         all
         |> Seq.choose (function
-            | CommentC c -> Some c
+            | CommentChild c -> Some c
             | _ -> None)
 
     member this.LeafValues =
         all
         |> Seq.choose (function
-            | LeafValueC lv -> Some lv
+            | LeafValueChild lv -> Some lv
             | _ -> None)
 
     member this.ValueClauses =
         all
         |> Seq.choose (function
-            | ValueClauseC vc -> Some vc
+            | ValueClauseChild vc -> Some vc
             | _ -> None)
 
     member this.Clauses =
         all
         |> Seq.choose (function
-            | ValueClauseC vc -> Some(vc :> IClause)
-            | NodeC n -> Some(n :> IClause)
+            | ValueClauseChild vc -> Some(vc :> IClause)
+            | NodeChild n -> Some(n :> IClause)
             | _ -> None)
 
-    member this.Has x = all |> (Array.exists (bothFind x))
+    member this.Has key = all |> (Array.exists (bothFind key))
     member this.HasById x = all |> (Array.exists (bothFindId x))
 
     member _.Tag x =
-        leaves ()
+        getLeaves ()
         |> Array.tryPick (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
 
     member _.TagById x =
-        leaves ()
+        getLeaves ()
         |> Array.tryPick (function
             | l when l.KeyId.lower = x -> Some l.ValueId
             | _ -> None)
 
     member _.Leafs key =
-        leaves ()
+        getLeaves ()
         |> Array.choose (function
             | l when l.Key == key -> Some l
             | _ -> None)
         |> Array.toSeq
     
     member _.Leaf key =
-        leaves ()
+        getLeaves ()
         |> Array.tryFind (fun l -> l.Key == key)
     
     member _.LeafsById x =
-        leaves () |> Array.filter (fun l -> l.KeyId.lower = x) |> Array.toSeq
+        getLeaves () |> Array.filter (fun l -> l.KeyId.lower = x) |> Array.toSeq
 
     member _.Tags x =
-        leaves ()
+        getLeaves ()
         |> Array.choose (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
@@ -525,15 +526,31 @@ and Node(key: string, pos: Range) =
             | QString s -> s.GetString()
             | s -> s.ToString())
 
-    member this.SetValue x v =
-        this.All <- this.AllChildren |> List.ofSeq |> List.replaceOrAdd (bothFind x) (fun _ -> v) v
-
-    member this.SetTagOpt x v =
-        this.All <- all |> List.ofSeq |> List.replaceOrAdd (bothFind x) (fun _ -> v) v
+    member this.ReplaceOrAdd key value =
+       this.All <- all |> List.ofSeq |> List.replaceOrAdd(bothFind(key)) (fun _ -> value) value
+       
+    /// <summary>
+    /// 设置拥有指定<c>key</c>的第一个<c>value</c>
+    /// </summary>
+    member this.SetValueFirst (key: string) (value: Child) =
+        match Array.tryFindIndex(bothFind(key)) this.AllArray with
+            | Some index ->
+                Array.set this.AllArray index value
+                reset()
+            | None -> ()
     
+    member this.SetValues key value =
+        for i in 0.. this.AllArray.Length - 1 do
+            if bothFind(key)(this.AllArray[i]) then
+                Array.set this.AllArray i value
+        reset()
+    
+    /// <summary>
+    /// 便捷设置 <see cref="Leaf"/>, 使用 '=' 作为 <see cref="Operator"/>, 如果key不存在则添加
+    /// </summary>
     member this.SetLeafValue key leafValue =
         this.All <-
-            let leaf = Child.LeafC(Leaf(key, Value.NewStringValue(leafValue),Range.Zero, Operator.Equals))
+            let leaf = Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals))
             all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
     
     member this.Child key =
@@ -542,27 +559,27 @@ and Node(key: string, pos: Range) =
             | c when c.Key == key -> Some c
             | _ -> None)
 
-    member this.Childs x =
+    member this.Childs key =
         this.Nodes
         |> Seq.choose (function
-            | c when c.Key == x -> Some c
+            | c when c.Key == key -> Some c
             | _ -> None)
 
     member this.ToRaw: Statement =
         let children =
             this.All
             |> List.collect (function
-                | NodeC n -> [ n.ToRaw ]
-                | LeafValueC lv -> [ lv.ToRaw ]
-                | LeafC l -> [ l.ToRaw ]
-                | ValueClauseC vc ->
+                | NodeChild n -> [ n.ToRaw ]
+                | LeafValueChild lv -> [ lv.ToRaw ]
+                | LeafChild l -> [ l.ToRaw ]
+                | ValueClauseChild vc ->
                     let keys =
                         vc.Keys
                         |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
                         |> List.ofArray
 
                     keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-                | CommentC c -> [ (Comment c) ])
+                | CommentChild c -> [ (Comment c) ])
 
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause children, Operator.Equals)))
 
@@ -633,13 +650,13 @@ module ProcessCore =
                 let node: Node = lookupN k pos context sl
                 node.KeyPrefix <- Some(v2.ToRawString())
                 node.ValuePrefix <- Some(v1.ToRawString())
-                None, None, (NodeC node) :: (acc |> List.skip 2)
+                None, None, (NodeChild node) :: (acc |> List.skip 2)
             | _, Some(Value(pos, v2)), KeyValue(PosKeyValue(pos2, KeyValueItem(Key(k), Clause sl, _))) when
                 pos.StartLine = pos2.StartLine
                 ->
                 let node = lookupN k pos2 context sl
                 node.KeyPrefix <- Some(v2.ToRawString())
-                None, None, (NodeC node) :: (acc |> List.skip 1)
+                None, None, (NodeChild node) :: (acc |> List.skip 1)
             //     None, None,
             | _ -> backone, Some next, (processNodeInner context next) :: acc
 
@@ -665,16 +682,16 @@ module ProcessCore =
                     |> (fun (_, _, ls) -> ls |> List.rev)
 
                 vc.All <- children
-                ValueClauseC vc)
+                ValueClauseChild vc)
 
         and processNodeInner (c: LookupContext) statement =
             //log "%A" node.Key
             match statement with
-            | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeC(lookupN k pos c sl)
-            | KeyValue(PosKeyValue(pos, kv)) -> LeafC(Leaf(kv, pos))
-            | Comment(r, c) -> CommentC(r, c)
+            | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupN k pos c sl)
+            | KeyValue(PosKeyValue(pos, kv)) -> LeafChild(Leaf(kv, pos))
+            | Comment(r, c) -> CommentChild(r, c)
             | Value(pos, Value.Clause sl) -> lookupVC pos c sl [||]
-            | Value(pos, v) -> LeafValueC(LeafValue(v, pos))
+            | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
         
         member _.ProcessNode() =
             (fun key pos sl ->
@@ -835,7 +852,7 @@ module ProcessCore =
             ()
         else
             match child with
-            | NodeC node -> node.AllArray |> Array.iter recurse
+            | NodeChild node -> node.AllArray |> Array.iter recurse
             | _ -> ()
 
     let simpleProcess = BaseProcess()
