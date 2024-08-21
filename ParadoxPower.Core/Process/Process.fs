@@ -441,13 +441,7 @@ and Node(key: string, pos: Range) =
 
     member this.Children = this.Nodes |> List.ofSeq
 
-    member this.Leaves =
-        all
-        |> Seq.choose (function
-            | LeafChild l -> Some l
-            | _ -> None)
-    
-    member this.LeavesOnlyRead : IReadOnlyCollection<Leaf> =
+    member this.Leaves : Leaf seq =
         getLeaves();
     
     member this.Values = this.Leaves |> List.ofSeq

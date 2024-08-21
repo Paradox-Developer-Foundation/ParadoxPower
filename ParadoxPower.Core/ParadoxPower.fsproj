@@ -5,6 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
     <Version>0.1.0-beta</Version>
+    <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
