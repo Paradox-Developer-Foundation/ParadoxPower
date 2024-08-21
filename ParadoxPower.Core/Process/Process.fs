@@ -521,8 +521,8 @@ and Node(key: string, pos: Range) =
             | s -> s.ToString())
 
     member this.ReplaceOrAdd key value =
-       this.All <- all |> List.ofSeq |> List.replaceOrAdd(bothFind(key)) (fun _ -> value) value
-       
+       this.All <- all |> List.ofArray |> List.replaceOrAdd(bothFind(key)) (fun _ -> value) value
+
     /// <summary>
     /// 设置拥有指定<c>key</c>的第一个<c>value</c>
     /// </summary>
