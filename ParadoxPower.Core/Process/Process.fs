@@ -418,7 +418,7 @@ and Node(key: string, pos: Range) =
             all <- (value |> Seq.toArray)
             reset ()
 
-    /// 直接返回FSharp List
+    /// 直接返回底层数组
     member _.AllArray = all
 
     member _.AllArray
