@@ -26,7 +26,6 @@
       <Compile Include="Localisation/CK2Localisation.fs" />
       <Compile Include="Localisation/VIC2Localisation.fs" />
       <Compile Include="Process/Process.fs" />
-      <Compile Include="Parser/UtilityParser.fs" />
       <Compile Include="CSharp/Parsers.fs" />
       <Compile Include="CSharp/Extensions.fs" />
       <Compile Include="ExtensionPoints/StatementVisitor.fs" />

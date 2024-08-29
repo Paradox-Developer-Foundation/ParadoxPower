@@ -110,6 +110,7 @@ and LeafValue(value: Value, ?pos: Range) =
     member val Trivia: Trivia option = None with get, set
     member val ValueId = StringResource.stringManager.InternIdentifierToken(value.ToString()) with get, set
     member val private _value = value with get, set
+
     member this.Value
         with get () = this._value
         and set value =
@@ -363,7 +364,7 @@ and Node(key: string, pos: Range) =
     let mutable all: Child array = Array.empty
     let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
 
-    let reset() =
+    let reset () =
         _leaves <-
             lazy
                 (all
@@ -371,7 +372,7 @@ and Node(key: string, pos: Range) =
                      | LeafChild l -> Some l
                      | _ -> None))
 
-    let getLeaves() = _leaves.Force()
+    let getLeaves () = _leaves.Force()
 
     do reset ()
 
@@ -441,9 +442,8 @@ and Node(key: string, pos: Range) =
 
     member this.Children = this.Nodes |> List.ofSeq
 
-    member this.Leaves : Leaf seq =
-        getLeaves();
-    
+    member this.Leaves: Leaf seq = getLeaves ()
+
     member this.Values = this.Leaves |> List.ofSeq
 
     member this.Comments =
@@ -486,17 +486,21 @@ and Node(key: string, pos: Range) =
             | l when l.KeyId.lower = x -> Some l.ValueId
             | _ -> None)
 
-    member _.Leafs key =
+    member _.GetLeaves key =
         getLeaves ()
         |> Array.choose (function
             | l when l.Key == key -> Some l
             | _ -> None)
         |> Array.toSeq
-    
-    member _.Leaf key =
-        getLeaves ()
-        |> Array.tryFind (fun l -> l.Key == key)
-    
+
+    member _.TryGetLeaf(key: string, leaf: outref<Leaf>) =
+        let leaves = getLeaves ()
+        match Array.tryFind (fun (item: Leaf) -> item.Key == key) leaves with
+        | Some l ->
+            leaf <- l
+            true
+        | None -> false
+
     member _.LeafsById x =
         getLeaves () |> Array.filter (fun l -> l.KeyId.lower = x) |> Array.toSeq
 
@@ -521,39 +525,46 @@ and Node(key: string, pos: Range) =
             | s -> s.ToString())
 
     member this.ReplaceOrAdd key value =
-       this.All <- all |> List.ofArray |> List.replaceOrAdd(bothFind(key)) (fun _ -> value) value
+        this.All <- all |> List.ofArray |> List.replaceOrAdd (bothFind (key)) (fun _ -> value) value
 
     /// <summary>
     /// 设置拥有指定<c>key</c>的第一个<c>value</c>
     /// </summary>
     member this.SetValueFirst (key: string) (value: Child) =
-        match Array.tryFindIndex(bothFind(key)) this.AllArray with
-            | Some index ->
-                Array.set this.AllArray index value
-                reset()
-            | None -> ()
-    
+        match Array.tryFindIndex (bothFind (key)) this.AllArray with
+        | Some index ->
+            Array.set this.AllArray index value
+            reset ()
+        | None -> ()
+
     member this.SetValues key value =
-        for i in 0.. this.AllArray.Length - 1 do
-            if bothFind(key)(this.AllArray[i]) then
+        for i in 0 .. this.AllArray.Length - 1 do
+            if bothFind (key) (this.AllArray[i]) then
                 Array.set this.AllArray i value
-        reset()
-    
+
+        reset ()
+
     /// <summary>
     /// 便捷设置 <see cref="Leaf"/>, 使用 '=' 作为 <see cref="Operator"/>, 如果key不存在则添加
     /// </summary>
     member this.SetLeafValue key leafValue =
         this.All <-
-            let leaf = Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals))
-            all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
-    
-    member this.Child key =
-        this.Nodes
-        |> Seq.tryPick (function
-            | c when c.Key == key -> Some c
-            | _ -> None)
+            let leaf =
+                Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals))
 
-    member this.Childs key =
+            all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
+
+    member this.TryGetChild(key: string, child: outref<Node>) =
+        let node = Seq.tryPick (function
+            | (item: Node) when item.Key == key -> Some item
+            | _ -> None) this.Nodes
+        match node with
+        | Some c ->
+            child <- c
+            true
+        | None -> false
+
+    member this.GetChildren key =
         this.Nodes
         |> Seq.choose (function
             | c when c.Key == key -> Some c
@@ -686,7 +697,7 @@ module ProcessCore =
             | Comment(r, c) -> CommentChild(r, c)
             | Value(pos, Value.Clause sl) -> lookupVC pos c sl [||]
             | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
-        
+
         member _.ProcessNode() =
             (fun key pos sl ->
                 lookupN
