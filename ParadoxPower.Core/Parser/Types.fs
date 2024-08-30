@@ -127,9 +127,9 @@ module Types =
 
         override x.GetHashCode() =
             match x with
-            | CommentStatement({Position=r; Comment=c}) -> c.GetHashCode()
+            | CommentStatement({Position=r; Comment=c}) -> hash (r, c)
             | KeyValue kv -> kv.GetHashCode()
-            | Value(r, v) -> v.GetHashCode()
+            | Value(r, v) -> hash (r, v)
 
     [<StructuralEquality; NoComparison>]
     type ParsedFile = ParsedFile of Statement list

@@ -1,10 +1,8 @@
 namespace ParadoxPower.Process
 
 open System
-open System.Collections.Generic
 open ParadoxPower.Common
 open ParadoxPower.Parser
-open ParadoxPower.Parser.Types
 open ParadoxPower.Utilities.Position
 open ParadoxPower.Utilities.Utils
 open ParadoxPower.Utilities
