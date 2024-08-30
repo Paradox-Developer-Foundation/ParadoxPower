@@ -140,7 +140,7 @@ and LeafValue(value: Value, ?pos: Range) =
 and [<Struct>] Child =
     | NodeChild of node: Node
     | LeafChild of leaf: Leaf
-    | CommentChild of comment: (Range * string)
+    | CommentChild of comment: Comment
     | LeafValueChild of leafvalue: LeafValue
     | ValueClauseChild of valueclause: ValueClause
 
@@ -319,7 +319,7 @@ and ValueClause(keys: Value[], pos: Range) =
                     |> List.ofArray
 
                 keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-            | CommentChild(r, c) -> [ (Comment(r, c)) ])
+            | CommentChild({Position = r; Comment = c}) -> [ (CommentStatement({Position = r; Comment = c})) ])
 
     static member Create() = ValueClause()
 
@@ -584,7 +584,7 @@ and Node(key: string, pos: Range) =
                         |> List.ofArray
 
                     keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-                | CommentChild c -> [ (Comment c) ])
+                | CommentChild c -> [ (CommentStatement c) ])
 
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause children, Operator.Equals)))
 
@@ -694,7 +694,7 @@ module ProcessCore =
             match statement with
             | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupN k pos c sl)
             | KeyValue(PosKeyValue(pos, kv)) -> LeafChild(Leaf(kv, pos))
-            | Comment(r, c) -> CommentChild(r, c)
+            | CommentStatement({Position = r; Comment = c}) -> CommentChild({Position = r; Comment = c})
             | Value(pos, Value.Clause sl) -> lookupVC pos c sl [||]
             | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
 

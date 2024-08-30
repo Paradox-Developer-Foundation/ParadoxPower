@@ -1,5 +1,6 @@
 namespace ParadoxPower.Parser
 
+open ParadoxPower.Process
 open ParadoxPower.Utilities
 open ParadoxPower.Utilities.Position
 open FParsec
@@ -110,7 +111,7 @@ module Types =
             let (PosKeyValue(_, k)) = x in k.GetHashCode()
 
     and [<CustomEquality; NoComparison>] Statement =
-        | Comment of Range * string
+        | CommentStatement of Comment
         | KeyValue of PosKeyValue
         | Value of Range * Value
 
@@ -118,7 +119,7 @@ module Types =
             match y with
             | :? Statement as y ->
                 match x, y with
-                | Comment(r1, s1), Comment(r2, s2) -> s1 = s2 && r1 = r2
+                | CommentStatement({Position=r1; Comment=s1}), CommentStatement({Position=r2; Comment=s2}) -> s1 = s2 && r1 = r2
                 | KeyValue kv1, KeyValue kv2 -> kv1 = kv2
                 | Value(r1, v1), Value(r2, v2) -> r1 = r2 && v1 = v2
                 | _ -> false
@@ -126,11 +127,9 @@ module Types =
 
         override x.GetHashCode() =
             match x with
-            | Comment(r, c) -> c.GetHashCode()
+            | CommentStatement({Position=r; Comment=c}) -> c.GetHashCode()
             | KeyValue kv -> kv.GetHashCode()
             | Value(r, v) -> v.GetHashCode()
-
-
 
     [<StructuralEquality; NoComparison>]
     type ParsedFile = ParsedFile of Statement list

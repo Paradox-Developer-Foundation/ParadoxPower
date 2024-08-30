@@ -7,6 +7,7 @@ namespace ParadoxPower.UnitTest.ProcessTests;
 public class ProcessTest
 {
     private const string Text = """
+        # comment1
         key1 = value1
         node1 = {
             key2 = value2
@@ -59,5 +60,13 @@ public class ProcessTest
         Assert.That(_root.TryGetChild("node1", out var node), Is.True);
         Assert.That(node, Is.Not.Null);
         Assert.That(node.Key, Is.EqualTo("node1"));
+    }
+
+    [Test]
+    public void CommentsTest()
+    {
+        var comments = _root.Comments.ToArray();
+        Assert.That(comments, Has.Length.EqualTo(1));
+        Assert.That(comments[0].Comment, Is.EqualTo(" comment1"));
     }
 }

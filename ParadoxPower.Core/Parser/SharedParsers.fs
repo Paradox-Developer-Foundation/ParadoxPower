@@ -1,5 +1,6 @@
 ﻿namespace ParadoxPower.Parser
 
+open ParadoxPower.Process
 open ParadoxPower.Utilities
 open FParsec
 open ParadoxPower.Utilities.Position
@@ -167,8 +168,6 @@ module internal SharedParsers =
         choiceL [ oppLTE; oppGTE; oppNE; oppEE; oppLT; oppGT; oppE; oppQE ] "operator"
         .>> ws
 
-    // let opp = new OperatorPrecedenceParser<float,unit,unit>()
-    // let operator = choiceL [pchar '='; pchar '>'; pchar '<'] "operator 1" >>. optional (chSkip '=' <?> "operator 2") .>> ws <?> "operator"
     let operatorLookahead =
         choice [ chSkip '='; chSkip '>'; chSkip '<'; chSkip '!'; strSkip "?=" ]
         <?> "operator 1"
@@ -299,13 +298,13 @@ module internal SharedParsers =
         pipe3 getPosition (value .>> ws) getPosition (fun a b c -> (getRange a c, b)) // |>> (fun (p, v) -> p, (Value v)))
 
     let statement =
-        comment |>> Comment
+        comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
         <|> (attempt (leafValue .>> notFollowedBy operatorLookahead |>> Value))
         <|> keyvalue
         <?> "statement"
 
     let valueBlock =
-        clause (many1 ((leafValue |>> Value) <|> (comment |>> Comment))) |>> Clause
+        clause (many1 ((leafValue |>> Value) <|> (comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))))) |>> Clause
         <?> "value clause"
 
     let valueClause = clause (many statement) |>> Clause //<?> "statement clause"
@@ -321,13 +320,6 @@ module internal SharedParsers =
         fun (stream: CharStream<_>) ->
             match stream.Peek() with
             | '{' -> vcP stream
-            // let vc = (vcP stream)
-            // if vc.Status = Ok then vc else
-            //     let vb = (vbP stream)
-            //    //vb
-            //     if vb.Status <> Ok then valueClause stream else vb
-            // let vb = (attempt valueBlock stream)
-            // if vb.Status = Ok then vb else valueClause stream
             | '"' -> valueQ stream
             | x when isDigit x || x = '-' ->
                 let i = (iP stream)
@@ -359,7 +351,7 @@ module internal SharedParsers =
     let alle = ws >>. many statement .>> eof |>> (fun f -> (ParsedFile f))
 
     let valuelist =
-        many1 ((comment |>> Comment) <|> (leafValue |>> (fun (a, b) -> Value(a, b))))
+        many1 ((comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))) <|> (leafValue |>> Value))
         .>> eof
 
     let statementlist = (many statement) .>> eof

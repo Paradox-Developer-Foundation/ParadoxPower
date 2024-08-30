@@ -1,5 +1,6 @@
 namespace ParadoxPower.Parser
 
+open ParadoxPower.Utilities
 open Types
 open FParsec
 
@@ -20,7 +21,7 @@ module CKPrinter =
 
     and private printKeyValue (acc, leadingNewline, prevStart, prevEnd) kv depth =
         match kv with
-        | Comment(r, c) ->
+        | CommentStatement({Position=r; Comment=c}) ->
             if r.StartLine = prevStart && r.StartLine = prevEnd || (not leadingNewline) then
                 acc + (tabs depth) + "#" + c, true, r.StartLine, r.EndLine
             else
@@ -62,14 +63,7 @@ module CKPrinter =
                 | x -> printKeyValue acc kv 0)
             ("", false, -1, -1)
         |> (fun (res, _, _, _) -> res)
-    // |> (fun (res, leadingNewline, _, _) -> if leadingNewline then res + "\n" else res)
 
-    // kvl |> List.map (
-    //     function
-    //     | KeyValue (PosKeyValue(_, KeyValueItem(_, Clause _, _))) as x -> printKeyValue x 0, true
-    //     | x -> printKeyValue x 0, false
-    // ) |> List.fold (fun (acc, start) (nextString, newline) -> if newline && (not start) then acc + nextString + "\n", false else acc + nextString, false) ("", true)
-    // |> fst
     let private prettyPrint ef =
         let (ParsedFile sl) = ef
         printKeyValueList sl 0
