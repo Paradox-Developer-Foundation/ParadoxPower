@@ -63,4 +63,4 @@ type Extensions =
 
     [<Extension>]
     static member inline PrettyPrint(obj: Statement) =
-        obj |> ParadoxPower.Parser.CKPrinter.api.prettyPrintStatement
+        obj |> ParadoxPower.Parser.CKPrinter.PrettyPrintStatement

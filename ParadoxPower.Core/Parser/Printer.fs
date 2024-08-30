@@ -1,5 +1,6 @@
 namespace ParadoxPower.Parser
 
+open System
 open ParadoxPower.Utilities
 open Types
 open FParsec
@@ -75,8 +76,12 @@ module CKPrinter =
             printKeyValueList ev 0
         | Failure(msg, _, _) -> msg
 
-    let api =
-        { prettyPrintFile = prettyPrint
-          prettyPrintStatements = (fun f -> printKeyValueList f 0)
-          prettyPrintStatement = (fun f -> printKeyValueList [ f ] 0)
-          prettyPrintFileResult = prettyPrintResult }
+    let PrettyPrintStatements (statements: Statement seq) =
+        printKeyValueList (statements |> List.ofSeq) 0
+    
+    let PrettyPrintFile file = prettyPrint file
+    
+    let PrettyPrintStatement statement =
+        printKeyValueList [ statement ] 0
+    
+    let PrettyPrintFileResult = prettyPrintResult

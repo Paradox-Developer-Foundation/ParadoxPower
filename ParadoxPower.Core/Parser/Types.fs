@@ -146,7 +146,7 @@ module Types =
           parseString: ParseString }
 
     type PrinterAPI =
-        { prettyPrintFile: PrettyPrintFile
-          prettyPrintStatements: PrettyPrintStatements
-          prettyPrintStatement: PrettyPrintStatement
-          prettyPrintFileResult: PrettyPrintFileResult }
+        { PrettyPrintFile: PrettyPrintFile
+          PrettyPrintStatements: PrettyPrintStatements
+          PrettyPrintStatement: PrettyPrintStatement
+          PrettyPrintFileResult: PrettyPrintFileResult }
