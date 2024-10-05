@@ -1,5 +1,7 @@
 ﻿using ParadoxPower.CSharp;
+using ParadoxPower.Parser;
 using ParadoxPower.Process;
+using ParadoxPower.Utilities;
 
 namespace ParadoxPower.UnitTest.ProcessTests;
 
@@ -19,11 +21,7 @@ public class ProcessTest
     [SetUp]
     public void Setup()
     {
-        _root = Parsers.ProcessStatements(
-            "123",
-            "123",
-            Parsers.ParseScriptFile("123.txt", Text).GetResult()
-        );
+        _root = CreateNode();
     }
 
     [Test]
@@ -35,6 +33,7 @@ public class ProcessTest
         // _root.SetLeafValue("key1", newValue);
         //
         // Assert.That(_root.TryGetLeaf("key1").Value.Value.ToRawString(), Is.EqualTo(newValue));
+        // CKPrinter.PrettyPrintFile()
     }
 
     [Test]
@@ -68,5 +67,24 @@ public class ProcessTest
         var comments = _root.Comments.ToArray();
         Assert.That(comments, Has.Length.EqualTo(1));
         Assert.That(comments[0].Comment, Is.EqualTo(" comment1"));
+    }
+
+    [Test]
+    public void AddChildTest()
+    {
+        var node = CreateNode();
+        node.AddChild(Leaf.Create(Types.KeyValueItem.NewKeyValueItem(Types.Key.NewKey("addKey"), Types.Value.NewInt(1), Types.Operator.Equals), Position.Range.Zero));
+        Assert.That(node.TryGetLeaf("addKey", out var leaf), Is.True);
+        Assert.That(leaf.Value.ToRawString(), Is.EqualTo("1"));
+        Assert.That(leaf.Value.IsInt, Is.True);
+    }
+
+    private Node CreateNode()
+    {
+        return Parsers.ProcessStatements(
+            "123",
+            "123",
+            Parsers.ParseScriptFile("123.txt", Text).GetResult()
+        );
     }
 }

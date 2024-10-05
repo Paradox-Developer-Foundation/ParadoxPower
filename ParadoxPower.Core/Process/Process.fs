@@ -552,6 +552,12 @@ and Node(key: string, pos: Range) =
 
             all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
 
+    member this.AddChild (child: Child) =
+        let newArray = Array.zeroCreate (all.Length + 1)
+        Array.Copy(all, newArray, all.Length)
+        newArray[newArray.Length - 1] <- child
+        this.AllArray <- newArray
+        
     member this.TryGetChild(key: string, child: outref<Node>) =
         let node = Seq.tryPick (function
             | (item: Node) when item.Key == key -> Some item
@@ -568,6 +574,7 @@ and Node(key: string, pos: Range) =
             | c when c.Key == key -> Some c
             | _ -> None)
 
+    // TODO: 优化性能, 减少内存分配
     member this.ToRaw: Statement =
         let children =
             this.All
