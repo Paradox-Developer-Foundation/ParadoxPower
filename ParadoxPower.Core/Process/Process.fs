@@ -88,7 +88,7 @@ and Leaf =
           Position = pos
           Operator = op
           Trivia = None }
-    //new(key : string, value : Value) = Leaf(key, value, Position.Empty)
+    new(key : string, value : Value, op: Operator) = Leaf(key, value, Range.Zero, op)
     new(keyvalueitem: KeyValueItem, ?pos: Range) =
         let (KeyValueItem(Key(key), value, op)) = keyvalueitem
         Leaf(key, value, pos |> Option.defaultValue Range.Zero, op)
@@ -557,7 +557,13 @@ and Node(key: string, pos: Range) =
         Array.Copy(all, newArray, all.Length)
         newArray[newArray.Length - 1] <- child
         this.AllArray <- newArray
-        
+    
+    member this.AddChild (child: Node) = this.AddChild(Child.NodeChild(child))
+    member this.AddChild (child: Comment) = this.AddChild(Child.CommentChild(child))
+    member this.AddChild (child: Leaf) = this.AddChild(Child.LeafChild(child))
+    member this.AddChild (child: LeafValue) = this.AddChild(Child.LeafValueChild(child))
+    member this.AddChild (child: ValueClause) = this.AddChild(Child.ValueClauseChild(child))
+
     member this.TryGetChild(key: string, child: outref<Node>) =
         let node = Seq.tryPick (function
             | (item: Node) when item.Key == key -> Some item
