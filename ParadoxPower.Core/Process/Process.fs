@@ -1,12 +1,13 @@
 namespace ParadoxPower.Process
 
 open System
+open System.Collections.Generic
+open System.Runtime.CompilerServices
 open ParadoxPower.Common
 open ParadoxPower.Parser
 open ParadoxPower.Utilities.Position
 open ParadoxPower.Utilities.Utils
 open ParadoxPower.Utilities
-
 
 module List =
     let replace f sub xs =
@@ -88,7 +89,9 @@ and Leaf =
           Position = pos
           Operator = op
           Trivia = None }
-    new(key : string, value : Value, op: Operator) = Leaf(key, value, Range.Zero, op)
+
+    new(key: string, value: Value, op: Operator) = Leaf(key, value, Range.Zero, op)
+
     new(keyvalueitem: KeyValueItem, ?pos: Range) =
         let (KeyValueItem(Key(key), value, op)) = keyvalueitem
         Leaf(key, value, pos |> Option.defaultValue Range.Zero, op)
@@ -317,7 +320,7 @@ and ValueClause(keys: Value[], pos: Range) =
                     |> List.ofArray
 
                 keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-            | CommentChild({Position = r; Comment = c}) -> [ (CommentStatement({Position = r; Comment = c})) ])
+            | CommentChild({ Position = r; Comment = c }) -> [ (CommentStatement({ Position = r; Comment = c })) ])
 
     static member Create() = ValueClause()
 
@@ -345,7 +348,6 @@ and ValueClause(keys: Value[], pos: Range) =
         member this.TagText x = this.TagText x
         member this.Tag x = this.Tag x
 
-
 and Node(key: string, pos: Range) =
     let bothFind (key: string) =
         function
@@ -362,7 +364,7 @@ and Node(key: string, pos: Range) =
     let mutable all: Child array = Array.empty
     let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
 
-    let reset () =
+    let resetLeaves () =
         _leaves <-
             lazy
                 (all
@@ -370,9 +372,10 @@ and Node(key: string, pos: Range) =
                      | LeafChild l -> Some l
                      | _ -> None))
 
-    let getLeaves () = _leaves.Force()
+    do resetLeaves ()
 
-    do reset ()
+    /// 返回惰性加载的 Leaf 数组
+    member internal this.GetLeavesArray() = _leaves.Force()
 
     new(key: string) = Node(key, Range.Zero)
 
@@ -415,7 +418,7 @@ and Node(key: string, pos: Range) =
     member _.AllChildren
         with set (value: ResizeArray<Child>) =
             all <- (value |> Seq.toArray)
-            reset ()
+            resetLeaves ()
 
     /// 直接返回底层数组
     member _.AllArray = all
@@ -423,14 +426,14 @@ and Node(key: string, pos: Range) =
     member _.AllArray
         with set value =
             all <- value
-            reset ()
+            resetLeaves ()
 
     member this.All = all |> List.ofSeq
 
     member this.All
         with set (value: Child list) =
             all <- (value |> List.toArray)
-            reset ()
+            resetLeaves ()
 
     member this.Nodes =
         all
@@ -440,7 +443,7 @@ and Node(key: string, pos: Range) =
 
     member this.Children = this.Nodes |> List.ofSeq
 
-    member this.Leaves: Leaf seq = getLeaves ()
+    member this.Leaves: Leaf seq = this.GetLeavesArray()
 
     member this.Values = this.Leaves |> List.ofSeq
 
@@ -472,38 +475,35 @@ and Node(key: string, pos: Range) =
     member this.Has key = all |> (Array.exists (bothFind key))
     member this.HasById x = all |> (Array.exists (bothFindId x))
 
-    member _.Tag x =
-        getLeaves ()
+    member this.Tag x =
+        this.GetLeavesArray()
         |> Array.tryPick (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
 
-    member _.TagById x =
-        getLeaves ()
+    member this.TagById x =
+        this.GetLeavesArray()
         |> Array.tryPick (function
             | l when l.KeyId.lower = x -> Some l.ValueId
             | _ -> None)
 
-    member _.GetLeaves key =
-        getLeaves ()
+    member this.GetLeaves key =
+        this.GetLeavesArray()
         |> Array.choose (function
             | l when l.Key == key -> Some l
             | _ -> None)
         |> Array.toSeq
 
-    member _.TryGetLeaf(key: string, leaf: outref<Leaf>) =
-        let leaves = getLeaves ()
-        match Array.tryFind (fun (item: Leaf) -> item.Key == key) leaves with
-        | Some l ->
-            leaf <- l
-            true
-        | None -> false
+    member this.GetLeaf(key: string) =
+        this.GetLeavesArray() |> Array.tryFind (fun (item: Leaf) -> item.Key == key)
 
-    member _.LeafsById x =
-        getLeaves () |> Array.filter (fun l -> l.KeyId.lower = x) |> Array.toSeq
+    member this.LeafsById x =
+        this.GetLeavesArray()
+        |> Array.filter (fun l -> l.KeyId.lower = x)
+        |> Array.toSeq
 
-    member _.Tags x =
-        getLeaves ()
+    member this.Tags x =
+        this.GetLeavesArray()
         |> Array.choose (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
@@ -532,7 +532,7 @@ and Node(key: string, pos: Range) =
         match Array.tryFindIndex (bothFind (key)) this.AllArray with
         | Some index ->
             Array.set this.AllArray index value
-            reset ()
+            resetLeaves ()
         | None -> ()
 
     member this.SetValues key value =
@@ -540,7 +540,7 @@ and Node(key: string, pos: Range) =
             if bothFind (key) (this.AllArray[i]) then
                 Array.set this.AllArray i value
 
-        reset ()
+        resetLeaves ()
 
     /// <summary>
     /// 便捷设置 <see cref="Leaf"/>, 使用 '=' 作为 <see cref="Operator"/>, 如果key不存在则添加
@@ -552,28 +552,52 @@ and Node(key: string, pos: Range) =
 
             all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
 
-    member this.AddChild (child: Child) =
+    member this.AddChild(child: Child) =
         let newArray = Array.zeroCreate (all.Length + 1)
         Array.Copy(all, newArray, all.Length)
         newArray[newArray.Length - 1] <- child
+        all <- newArray
+
+        match child with
+        | LeafChild _ -> resetLeaves ()
+        | _ -> ()
+
+    member this.AddChild(child: Node) = this.AddChild(Child.NodeChild(child))
+
+    member this.AddChild(child: Comment) =
+        this.AddChild(Child.CommentChild(child))
+
+    member this.AddChild(child: Leaf) = this.AddChild(Child.LeafChild(child))
+
+    member this.AddChild(child: LeafValue) =
+        this.AddChild(Child.LeafValueChild(child))
+
+    member this.AddChild(child: ValueClause) =
+        this.AddChild(Child.ValueClauseChild(child))
+
+    member this.AddChildren(children: Child IReadOnlyList) =
+        let newArray = Array.zeroCreate (all.Length + children.Count)
+        Array.Copy(all, newArray, all.Length)
+        for i in 0 .. children.Count - 1 do
+            newArray[all.Length + i] <- children[i]
         this.AllArray <- newArray
     
-    member this.AddChild (child: Node) = this.AddChild(Child.NodeChild(child))
-    member this.AddChild (child: Comment) = this.AddChild(Child.CommentChild(child))
-    member this.AddChild (child: Leaf) = this.AddChild(Child.LeafChild(child))
-    member this.AddChild (child: LeafValue) = this.AddChild(Child.LeafValueChild(child))
-    member this.AddChild (child: ValueClause) = this.AddChild(Child.ValueClauseChild(child))
-
-    member this.TryGetChild(key: string, child: outref<Node>) =
-        let node = Seq.tryPick (function
+    member this.AddChildren(children: Child seq) =
+        match children with
+        | :? IReadOnlyList<Child> as children -> this.AddChildren(children)
+        | _ ->
+            let resizeArray = this.AllChildren
+            resizeArray.AddRange(children)
+            this.AllArray <- resizeArray.ToArray()
+    
+    member this.GetChild(key: string) =
+        Seq.tryPick
+            (function
             | (item: Node) when item.Key == key -> Some item
-            | _ -> None) this.Nodes
-        match node with
-        | Some c ->
-            child <- c
-            true
-        | None -> false
+            | _ -> None)
+            this.Nodes
 
+    /// 获取拥有指定 key 的 Node, 大小写不敏感
     member this.GetChildren key =
         this.Nodes
         |> Seq.choose (function
@@ -705,7 +729,7 @@ module ProcessCore =
             match statement with
             | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupN k pos c sl)
             | KeyValue(PosKeyValue(pos, kv)) -> LeafChild(Leaf(kv, pos))
-            | CommentStatement({Position = r; Comment = c}) -> CommentChild({Position = r; Comment = c})
+            | CommentStatement({ Position = r; Comment = c }) -> CommentChild({ Position = r; Comment = c })
             | Value(pos, Value.Clause sl) -> lookupVC pos c sl [||]
             | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
 

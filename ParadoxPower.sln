@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxPower.UnitTest", "Pa
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpTest", "FSharpTest\FSharpTest.fsproj", "{29C4CCD7-E33D-4EA1-ACEF-FF2FCDAEF035}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxPower.CSharpExtensions", "ParadoxPower.CSharpExtensions\ParadoxPower.CSharpExtensions.csproj", "{3EF2D5FE-5B9D-4BEC-9C89-DDB710E2F3F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{29C4CCD7-E33D-4EA1-ACEF-FF2FCDAEF035}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29C4CCD7-E33D-4EA1-ACEF-FF2FCDAEF035}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29C4CCD7-E33D-4EA1-ACEF-FF2FCDAEF035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EF2D5FE-5B9D-4BEC-9C89-DDB710E2F3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EF2D5FE-5B9D-4BEC-9C89-DDB710E2F3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EF2D5FE-5B9D-4BEC-9C89-DDB710E2F3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EF2D5FE-5B9D-4BEC-9C89-DDB710E2F3F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

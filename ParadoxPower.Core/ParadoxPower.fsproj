@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
-    <Version>0.3.0-beta</Version>
+    <Version>0.4.0-beta</Version>
     <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -30,6 +30,7 @@
       
       <Compile Include="CSharp/Parsers.fs" />
       <Compile Include="CSharp/Extensions.fs" />
+      <Compile Include="Assembly.fs" />
   </ItemGroup>
 
   <ItemGroup>
