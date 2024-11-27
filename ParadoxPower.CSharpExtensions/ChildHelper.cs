@@ -20,7 +20,7 @@ public static class ChildHelper
         return Child.NewLeafChild(new Leaf(key, Types.Value.NewFloat(value), op));
     }
 
-    public static Child LeafString(string key, string value, Types.Operator op = Types.Operator.Equals)
+    public static Child Leaf(string key, string value, Types.Operator op = Types.Operator.Equals)
     {
         return Child.NewLeafChild(new Leaf(key, Types.Value.NewStringValue(value), op));
     }
@@ -33,5 +33,10 @@ public static class ChildHelper
     public static Child Node(string key)
     {
         return Child.NewNodeChild(new Node(key));
+    }
+    
+    public static Child LeafValue(string key, string value)
+    {
+        return Child.NewLeafValueChild(Process.LeafValue.Create(Types.Value.NewStringValue(value)));
     }
 }
