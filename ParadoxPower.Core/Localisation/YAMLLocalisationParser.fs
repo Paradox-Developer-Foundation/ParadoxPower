@@ -76,7 +76,6 @@ module YAMLLocalisationParser =
         let mutable recordsL: struct (Entry * Lang) list = []
 
         let addFile f t =
-            //log "%s" f
             match parseLocText t f with
             | Success({ key = key; entries = entries }, _, _) ->
                 match keyToLanguage key with
@@ -117,7 +116,7 @@ module YAMLLocalisationParser =
             recordsL <- []
 
         new(localisationSettings: LocalisationSettings<'L>) =
-            log (sprintf "Loading %s localisation in %s" localisationSettings.gameName localisationSettings.folder)
+            log $"Loading %s{localisationSettings.gameName} localisation in %s{localisationSettings.folder}"
 
             match Directory.Exists(localisationSettings.folder) with
             | true ->
@@ -138,11 +137,9 @@ module YAMLLocalisationParser =
                     localisationSettings.gameToLang
                 )
             | false ->
-                log (sprintf "%s not found" localisationSettings.folder)
+                log $"%s{localisationSettings.folder} not found"
                 YAMLLocalisationService([], localisationSettings.keyToLanguage, localisationSettings.gameToLang)
-        //new (settings : CK2Settings) = HOI4LocalisationService(settings.HOI4Directory.localisationDirectory, settings.ck2Language)
 
-        //new (settings : CK2Settings) = EU4LocalisationService(settings.EU4Directory.localisationDirectory, settings.ck2Language)
         member _.Api lang =
             { new ILocalisationAPI with
                 member _.Results = results
@@ -154,99 +151,3 @@ module YAMLLocalisationParser =
 
         interface ILocalisationAPICreator with
             member this.Api l = this.Api l
-
-
-module EU4 =
-    open YAMLLocalisationParser
-
-    let private keyToLanguage =
-        function
-        | "l_english" -> Some EU4Lang.English
-        | "l_french" -> Some EU4Lang.French
-        | "l_spanish" -> Some EU4Lang.Spanish
-        | "l_german" -> Some EU4Lang.German
-        | _ -> None
-
-    let EU4LocalisationService (files: (string * string) list) =
-        YAMLLocalisationService(files, keyToLanguage, EU4)
-
-    let EU4LocalisationServiceFromFolder (folder: string) =
-        YAMLLocalisationService
-            { folder = folder
-              gameName = "Europa Universalis IV"
-              keyToLanguage = keyToLanguage
-              gameToLang = EU4 }
-
-module HOI4 =
-    open YAMLLocalisationParser
-
-    let private keyToLanguage =
-        function
-        | "l_english" -> Some HOI4Lang.English
-        | "l_french" -> Some HOI4Lang.French
-        | "l_spanish" -> Some HOI4Lang.Spanish
-        | "l_german" -> Some HOI4Lang.German
-        | "l_russian" -> Some HOI4Lang.Russian
-        | "l_polish" -> Some HOI4Lang.Polish
-        | "l_braz_por" -> Some HOI4Lang.Braz_Por
-        | _ -> None
-
-    let HOI4LocalisationService (files: (string * string) list) =
-        YAMLLocalisationService(files, keyToLanguage, HOI4)
-
-    let HOI4LocalisationServiceFromFolder (folder: string) =
-        YAMLLocalisationService
-            { folder = folder
-              gameName = "Hearts of Iron IV"
-              keyToLanguage = keyToLanguage
-              gameToLang = HOI4 }
-
-module STL =
-    open YAMLLocalisationParser
-
-    let private keyToLanguage =
-        function
-        | "l_english" -> Some STLLang.English
-        | "l_french" -> Some STLLang.French
-        | "l_spanish" -> Some STLLang.Spanish
-        | "l_german" -> Some STLLang.German
-        | "l_russian" -> Some STLLang.Russian
-        | "l_polish" -> Some STLLang.Polish
-        | "l_braz_por" -> Some STLLang.Braz_Por
-        | "l_simp_chinese" -> Some STLLang.Chinese
-        | "l_japanese" -> Some STLLang.Japanese
-        | "l_korean" -> Some STLLang.Korean
-        | _ -> None
-
-    let STLLocalisationService (files: (string * string) list) =
-        YAMLLocalisationService(files, keyToLanguage, STL)
-
-    let STLLocalisationServiceFromFolder (folder: string) =
-        YAMLLocalisationService
-            { folder = folder
-              gameName = "Stellaris"
-              keyToLanguage = keyToLanguage
-              gameToLang = STL }
-
-module IR =
-    open YAMLLocalisationParser
-
-    let private keyToLanguage =
-        function
-        | "l_english" -> Some IRLang.English
-        | "l_french" -> Some IRLang.French
-        | "l_german" -> Some IRLang.German
-        | "l_spanish" -> Some IRLang.Spanish
-        | "l_simp_chinese" -> Some IRLang.Chinese
-        | "l_russian" -> Some IRLang.Russian
-        | _ -> None
-
-    let IRLocalisationService (files: (string * string) list) =
-        YAMLLocalisationService(files, keyToLanguage, IR)
-
-    let IRLocalisationServiceFromFolder (folder: string) =
-        YAMLLocalisationService
-            { folder = folder
-              gameName = "Imperator"
-              keyToLanguage = keyToLanguage
-              gameToLang = IR }

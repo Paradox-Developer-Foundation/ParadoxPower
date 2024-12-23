@@ -24,8 +24,6 @@
       <Compile Include="Parser/SetupLogParser.fs" />
       <Compile Include="Localisation/LocalisationDomain.fs" />
       <Compile Include="Localisation/YAMLLocalisationParser.fs" />
-      <Compile Include="Localisation/CK2Localisation.fs" />
-      <Compile Include="Localisation/VIC2Localisation.fs" />
       <Compile Include="Process/Process.fs" />
       
       <Compile Include="CSharp/Parsers.fs" />
