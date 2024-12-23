@@ -346,7 +346,7 @@ module internal SharedParsers =
         <- pipe5 getPosition (keyQ <|> key) operator value (getPosition .>> ws) (fun start id op value endp ->
         KeyValue(PosKeyValue(getRange start endp, KeyValueItem(id, value, op))))
 
-    let alle = ws >>. many statement .>> eof |>> (fun f -> (ParsedFile f))
+    let alle = ws >>. many statement .>> eof |>> ParsedFile
 
     let valuelist =
         many1 ((comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))) <|> (leafValue |>> Value))
