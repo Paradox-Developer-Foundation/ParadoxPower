@@ -13,7 +13,7 @@ module Types =
         | Position of FParsec.Position
 
         override x.ToString() =
-            let (Position p) = x in sprintf "Position (Ln: %i, Pos: %i, File: %s)" p.Line p.Column p.StreamName
+            let (Position p) = x in $"Position (Ln: %i{p.Line}, Pos: %i{p.Column}, File: %s{p.StreamName})"
 
         static member Empty = Position(FParsec.Position("none", 0L, 0L, 0L))
 
@@ -56,7 +56,7 @@ module Types =
         | KeyValueItem of Key * Value * Operator
 
         override x.ToString() =
-            let (KeyValueItem(id, v, op)) = x in sprintf "%O %s %O" id (operatorToString op) v
+            let (KeyValueItem(id, v, op)) = x in $"{id} %s{operatorToString op} {v}"
 
     and Value =
         | String of StringTokens

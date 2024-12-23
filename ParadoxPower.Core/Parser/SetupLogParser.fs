@@ -8,7 +8,7 @@ module SetupLogParser =
     type RawStaticModifier = { num: int; tag: string; name: string }
     type RawModifier = { tag: string; category: int }
 
-    let private isvaluechar = SharedParsers.isvaluechar
+    let private isvaluechar = SharedParsers.isValueChar
 
     let private str s =
         pstring s .>> SharedParsers.ws <?> ("string " + s)

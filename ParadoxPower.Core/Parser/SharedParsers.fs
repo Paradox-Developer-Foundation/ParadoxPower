@@ -85,8 +85,8 @@ module internal SharedParsers =
            '|'
            magicChar |]
 
-    let isAnyofidCharArray = isAnyOf idCharArray
-    let isidchar = fun c -> isLetter c || isDigit c || isAnyofidCharArray c
+    let isAnyOfIdCharArray = isAnyOf idCharArray
+    let isIdChar = fun c -> isLetter c || isDigit c || isAnyOfIdCharArray c
 
     let valueCharArray =
         [| '_'
@@ -119,7 +119,7 @@ module internal SharedParsers =
            magicChar |]
 
     let isAnyValueChar = isAnyOf valueCharArray
-    let isvaluechar = fun c -> isLetter c || isDigit c || isAnyValueChar c
+    let isValueChar = fun c -> isLetter c || isDigit c || isAnyValueChar c
 
 
     // Utility parsers
@@ -134,7 +134,6 @@ module internal SharedParsers =
 
     let chSkip c =
         skipChar c .>> ws <?> ("skip char " + string c)
-    // let clause inner = between (chSkip '{') (skipChar '}') inner
     let clause inner =
         betweenL (chSkip '{' <?> "opening brace") (skipChar '}' <?> "closing brace") inner "clause"
 
@@ -174,7 +173,7 @@ module internal SharedParsers =
         parseWithPosition (skipChar '#' >>. restOfLine true .>> ws |>> string)
         <?> "comment"
 
-    let key = (many1SatisfyL isidchar "id character") .>> ws |>> Key <?> "id"
+    let key = (many1SatisfyL isIdChar "id character") .>> ws |>> Key <?> "id"
 
     let keyQ =
         between (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar))
@@ -184,29 +183,26 @@ module internal SharedParsers =
         <?> "quoted key"
 
     let valueS =
-        (many1SatisfyL isvaluechar "value character")
+        (many1SatisfyL isValueChar "value character")
         |>> string
         |>> (fun x -> StringResource.stringManager.InternIdentifierToken x)
         |>> String
         <?> "string"
 
-    // let valueQ = between (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar)) |>> QString <?> "quoted string"
     let valueQ =
         betweenL (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar)) "quoted string"
         |>> (fun x -> StringResource.stringManager.InternIdentifierToken x)
         |>> QString
         <?> "quoted string"
 
-    // let valueB = ( (skipString "yes") .>> nextCharSatisfiesNot (isvaluechar)  |>> (fun _ -> Bool(true))) <|>
-    //                 ((skipString "no") .>> nextCharSatisfiesNot (isvaluechar)  |>> (fun _ -> Bool(false)))
     let valueBYes =
-        skipString "yes" .>> nextCharSatisfiesNot isvaluechar |>> (fun _ -> Bool(true))
+        skipString "yes" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(true))
 
     let valueBNo =
-        skipString "no" .>> nextCharSatisfiesNot isvaluechar |>> (fun _ -> Bool(false))
+        skipString "no" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(false))
 
-    let valueI = pint64 .>> nextCharSatisfiesNot isvaluechar |>> int |>> Int
-    let valueF = pfloat .>> nextCharSatisfiesNot isvaluechar |>> decimal |>> Float
+    let valueI = pint64 .>> nextCharSatisfiesNot isValueChar |>> int |>> Int
+    let valueF = pfloat .>> nextCharSatisfiesNot isValueChar |>> decimal |>> Float
 
     let hsv3 =
         clause (
@@ -293,7 +289,7 @@ module internal SharedParsers =
     let (value: Parser<Value, unit>), valueimpl = createParserForwardedToRef ()
 
     let leafValue =
-        pipe3 getPosition (value .>> ws) getPosition (fun a b c -> (getRange a c, b)) // |>> (fun (p, v) -> p, (Value v)))
+        pipe3 getPosition (value .>> ws) getPosition (fun a b c -> (getRange a c, b))
 
     let statement =
         comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
@@ -305,7 +301,7 @@ module internal SharedParsers =
         clause (many1 ((leafValue |>> Value) <|> (comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))))) |>> Clause
         <?> "value clause"
 
-    let valueClause = clause (many statement) |>> Clause //<?> "statement clause"
+    let valueClause = clause (many statement) |>> Clause
 
     let valueCustom: Parser<Value, unit> =
         let vcP = valueClause
@@ -337,8 +333,6 @@ module internal SharedParsers =
                 | _, "no" -> bnP stream
                 | "@\\[", _ -> mpP stream
                 | _ -> valueS stream
-    //| _ -> choice [(attempt valueB); valueS] stream
-    //choiceL [(attempt valueB); (attempt hsv); (attempt rgb); valueS] "value" stream
 
     valueimpl.Value <- valueCustom <?> "value"
 

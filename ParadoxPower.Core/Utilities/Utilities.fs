@@ -14,7 +14,7 @@ module Utils =
 
     type InsensitiveStringComparer() =
         interface IComparer<string> with
-            member __.Compare(a, b) =
+            member _.Compare(a, b) =
                 String.Compare(a, b, StringComparison.OrdinalIgnoreCase)
 
     let memoize keyFunction memFunction =
@@ -33,7 +33,6 @@ module Utils =
         | Normal
         | Verbose
 
-
     /// For the default logger only
     let mutable loglevel = Silent
 
@@ -43,7 +42,6 @@ module Utils =
         | Normal, Normal -> Printf.eprintfn "%s: %s" (DateTime.Now.ToString("HH:mm:ss")) message
         | Verbose, _ -> Printf.eprintfn "%s: %s" (DateTime.Now.ToString("HH:mm:ss")) message
         | _, _ -> ()
-    // |Verbose -> logWith logger format
 
     let private defaultLogVerbose message = logInner Verbose message
     let private defaultLogNormal message = logInner Normal message
@@ -96,7 +94,6 @@ module Utils =
     let quoteCharArray = [| '"' |]
 
 module TryParser =
-    // convenient, functional TryParse wrappers returning option<'a>
     let tryParseWith tryParseFunc =
         tryParseFunc
         >> function

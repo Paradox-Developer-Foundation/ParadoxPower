@@ -6,6 +6,7 @@ open System.Collections.Generic
 open System.IO
 open ParadoxPower.Utilities.Utils
 
+/// 本地化文件解析器
 module YAMLLocalisationParser =
     open FParsec
 
@@ -30,7 +31,7 @@ module YAMLLocalisationParser =
 
     let value = digit .>> spaces <?> "version"
 
-    let getRange (start: FParsec.Position) (endp: FParsec.Position) =
+    let getRange (start: Position) (endp: Position) =
         mkRange start.StreamName (mkPos (int start.Line) (int start.Column)) (mkPos (int endp.Line) (int endp.Column))
 
     let entry =
@@ -54,7 +55,7 @@ module YAMLLocalisationParser =
                   errorRange = errorRange })
         <?> "entry"
 
-    let comment = pstring "#" >>. restOfLine true .>> spaces <?> "comment"
+    let comment = pchar '#' >>. restOfLine true .>> spaces <?> "comment"
 
     let file =
         spaces
