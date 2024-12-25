@@ -186,12 +186,9 @@ type StringResourceManager() =
     let metadata = new ConcurrentDictionary<StringToken, StringMetadata>()
 
     let mutable i = 0
-    // let mutable j = 0
     let monitor = Object()
 
     member x.InternIdentifierToken(s) =
-        // j <- j + 1
-        // eprintfn "%A" j
         let mutable res = Unchecked.defaultof<_>
         let ok = strings.TryGetValue(s, &res)
 
@@ -220,7 +217,6 @@ type StringResourceManager() =
                         let stringID = i
                         let lowID = i + 1
                         i <- i + 2
-                        // eprintfn "%A" i
                         let res = StringTokens(lowID, stringID, quoted)
                         let resl = StringTokens(lowID, lowID, false)
 
@@ -275,11 +271,13 @@ type StringResourceManager() =
                         strings[ls] <- resl
                         strings[s] <- res
                         res)
-
     member x.GetStringForIDs(id: StringTokens) = ints[id.normal]
     member x.GetLowerStringForIDs(id: StringTokens) = ints[id.lower]
     member x.GetStringForID(id: StringToken) = ints[id]
     member x.GetMetadataForID(id: StringToken) = metadata[id]
+    member x.IntsCount = ints.Count
+    member x.StringsCount = strings.Count
+    member x.MetadataCount = metadata.Count
 
 module StringResource =
     let mutable stringManager = StringResourceManager()
