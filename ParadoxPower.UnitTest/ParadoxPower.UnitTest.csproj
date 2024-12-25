@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ParadoxPower.Core\ParadoxPower.fsproj" />
+      <ProjectReference Include="..\ParadoxPower.CSharpExtensions\ParadoxPower.CSharpExtensions.csproj" />
     </ItemGroup>
 
 </Project>

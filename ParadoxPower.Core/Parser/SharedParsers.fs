@@ -185,13 +185,11 @@ module internal SharedParsers =
     let valueS =
         (many1SatisfyL isValueChar "value character")
         |>> string
-        |>> (fun x -> StringResource.stringManager.InternIdentifierToken x)
         |>> String
         <?> "string"
 
     let valueQ =
         betweenL (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar)) "quoted string"
-        |>> (fun x -> StringResource.stringManager.InternIdentifierToken x)
         |>> QString
         <?> "quoted string"
 
@@ -279,13 +277,12 @@ module internal SharedParsers =
 
     let metaprograming =
         pipe3 (pstring "@\\[") metaprogrammingCharSnippet (ch ']') (fun a b c -> (a + b + string c))
-        |>> (fun x -> StringResource.stringManager.InternIdentifierToken x)
         |>> String
     // Complex types
     // =======
 
     // Recursive types
-    let keyvalue, keyvalueimpl = createParserForwardedToRef ()
+    let keyValue, keyvalueimpl = createParserForwardedToRef ()
     let (value: Parser<Value, unit>), valueimpl = createParserForwardedToRef ()
 
     let leafValue =
@@ -294,7 +291,7 @@ module internal SharedParsers =
     let statement =
         comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
         <|> (attempt (leafValue .>> notFollowedBy operatorLookahead |>> Value))
-        <|> keyvalue
+        <|> keyValue
         <?> "statement"
 
     let valueBlock =
@@ -342,9 +339,9 @@ module internal SharedParsers =
 
     let alle = ws >>. many statement .>> eof |>> ParsedFile
 
-    let valuelist =
+    let valueList =
         many1 ((comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))) <|> (leafValue |>> Value))
         .>> eof
 
-    let statementlist = (many statement) .>> eof
-    let all = ws >>. ((attempt valuelist) <|> statementlist)
+    let statementList = (many statement) .>> eof
+    let all = ws >>. ((attempt valueList) <|> statementList)

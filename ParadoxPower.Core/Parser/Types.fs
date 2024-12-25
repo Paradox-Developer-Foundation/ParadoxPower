@@ -59,24 +59,24 @@ module Types =
             let (KeyValueItem(id, v, op)) = x in $"{id} %s{operatorToString op} {v}"
 
     and Value =
-        | String of StringTokens
-        | QString of StringTokens
+        | String of string
+        | QString of string
         | Float of decimal
         | Int of int
         | Bool of bool
         | Clause of Statement list
         
         static member NewStringValue(s: string) =
-             Value.String(StringResource.stringManager.InternIdentifierToken(s))
+             Value.String(s)
         
         static member NewQStringValue(s: string) =
-             Value.QString(StringResource.stringManager.InternIdentifierToken(s))
+             Value.QString(s)
         
         override x.ToString() =
             match x with
             | Clause b -> "{ " + $"{b}" + " }"
-            | QString s -> "\"" + StringResource.stringManager.GetStringForIDs s + "\""
-            | String s -> StringResource.stringManager.GetStringForIDs s
+            | QString s -> "\"" + s + "\""
+            | String s -> s
             | Bool b -> if b then "yes" else "no"
             | Float f -> f.ToString(CultureInfo.InvariantCulture)
             | Int i -> $"%i{i}"
@@ -84,17 +84,11 @@ module Types =
         member x.ToRawString() =
             match x with
             | Clause b -> "{ " + $"{b}" + " }"
-            | QString s -> StringResource.stringManager.GetStringForIDs s
-            | String s -> StringResource.stringManager.GetStringForIDs s
+            | QString s -> s
+            | String s -> s
             | Bool b -> if b then "yes" else "no"
             | Float f -> f.ToString(CultureInfo.InvariantCulture)
             | Int i -> $"%i{i}"
-
-        member x.ToStringId() =
-            match x with
-            | String stringTokens -> stringTokens
-            | QString stringTokens -> stringTokens
-            | _ -> StringResource.stringManager.InternIdentifierToken(x.ToString())
 
     and [<CustomEquality; NoComparison; Struct>] PosKeyValue =
         | PosKeyValue of Range * KeyValueItem

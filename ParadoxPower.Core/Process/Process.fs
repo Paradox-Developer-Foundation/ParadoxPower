@@ -38,7 +38,6 @@ type Trivia = { originalSource: Range option }
 
 type IKeyPos =
     abstract member Key: string
-    abstract member KeyId: StringTokens
     abstract member Position: Range
     abstract member Trivia: Trivia option with get, set
 
@@ -54,38 +53,22 @@ type IClause =
     abstract member Tag: string -> Value option
     abstract member TagText: string -> string
 
-
-
 and Leaf =
-    val mutable KeyId: StringTokens
-    val mutable private _valueId: StringTokens
-    val mutable private _value: Value
+    val mutable Value: Value
+    val mutable Key: string
     val mutable Position: Range
     val mutable Operator: Operator
     val mutable Trivia: Trivia option
 
-    member this.Key
-        with get () = StringResource.stringManager.GetStringForID(this.KeyId.normal).Trim quoteCharArray
-        and set value = this.KeyId <- StringResource.stringManager.InternIdentifierToken(value)
-
-    member this.ValueId = this._valueId
-
-    member this.Value
-        with get () = this._value
-        and set value =
-            this._value <- value
-            this._valueId <- StringResource.stringManager.InternIdentifierToken(value.ToString())
-
     member this.ValueText =
-        StringResource.stringManager.GetStringForID(this.ValueId.normal).Trim quoteCharArray
+        this.Value.ToRawString()
 
     member this.ToRaw =
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key(this.Key), this.Value, this.Operator)))
 
     new(key: string, value: Value, pos: Range, op: Operator) =
-        { KeyId = StringResource.stringManager.InternIdentifierToken(key)
-          _valueId = StringResource.stringManager.InternIdentifierToken(value.ToString())
-          _value = value
+        { Key = key
+          Value = value
           Position = pos
           Operator = op
           Trivia = None }
@@ -100,7 +83,6 @@ and Leaf =
 
     interface IKeyPos with
         member this.Key = this.Key
-        member this.KeyId = this.KeyId
         member this.Position = this.Position
 
         member this.Trivia
@@ -109,28 +91,20 @@ and Leaf =
 
 and LeafValue(value: Value, ?pos: Range) =
     member val Trivia: Trivia option = None with get, set
-    member val ValueId = StringResource.stringManager.InternIdentifierToken(value.ToString()) with get, set
-    member val private _value = value with get, set
-
-    member this.Value
-        with get () = this._value
-        and set value =
-            this._value <- value
-            this.ValueId <- StringResource.stringManager.InternIdentifierToken(value.ToString())
+    member val Value = value with get, set
 
     member this.ValueText =
-        StringResource.stringManager.GetStringForID(this.ValueId.normal).Trim quoteCharArray
+        this.Value.ToRawString().Trim quoteCharArray
 
     member this.Key =
-        StringResource.stringManager.GetStringForID(this.ValueId.normal).Trim quoteCharArray
+        this.ValueText
 
     member val Position = defaultArg pos Range.Zero
-    member this.ToRaw = Value(this.Position, this._value)
+    member this.ToRaw = Value(this.Position, this.Value)
     static member Create value = LeafValue value
 
     interface IKeyPos with
         member this.Key = this.Key
-        member this.KeyId = this.ValueId
         member this.Position = this.Position
 
         member this.Trivia
@@ -146,9 +120,9 @@ and [<Struct>] Child =
     | ValueClauseChild of valueclause: ValueClause
 
 and ValueClause(keys: Value[], pos: Range) =
-    let mutable _keys =
+    let mutable _keys: string array =
         keys
-        |> Array.map (fun v -> StringResource.stringManager.InternIdentifierToken(v.ToString()))
+        |> Array.map (fun v -> v.ToString())
 
     let bothFind (x: string) =
         function
@@ -263,14 +237,14 @@ and ValueClause(keys: Value[], pos: Range) =
     member this.TagText x =
         this.Tag x
         |> function
-            | Some(QString s) -> s.GetString()
+            | Some(QString s) -> s
             | Some s -> s.ToString()
             | None -> ""
 
     member this.TagsText x =
         this.Tags x
         |> Seq.map (function
-            | QString s -> s.GetString()
+            | QString s -> s
             | s -> s.ToString())
 
     member this.SetTag x v =
@@ -290,7 +264,7 @@ and ValueClause(keys: Value[], pos: Range) =
 
     member this.FirstKey =
         if _keys.Length > 0 then
-            Some(StringResource.stringManager.GetStringForID _keys[0].normal)
+            Some(_keys[0])
         else
             None
 
@@ -298,7 +272,7 @@ and ValueClause(keys: Value[], pos: Range) =
 
     member this.SecondKey =
         if _keys.Length > 0 then
-            Some(StringResource.stringManager.GetStringForID _keys[1].normal)
+            Some(_keys[1])
         else
             None
 
@@ -327,10 +301,6 @@ and ValueClause(keys: Value[], pos: Range) =
     interface IKeyPos with
         member this.Key = this.FirstKey |> Option.defaultValue "clause"
 
-        member this.KeyId =
-            this.FirstKeyId
-            |> Option.defaultValue (StringResource.stringManager.InternIdentifierToken(""))
-
         member this.Position = this.Position
 
         member this.Trivia
@@ -355,12 +325,6 @@ and Node(key: string, pos: Range) =
         | LeafChild l when l.Key == key -> true
         | _ -> false
 
-    let bothFindId (x: StringLowerToken) =
-        function
-        | NodeChild n when n.KeyId.lower = x -> true
-        | LeafChild l when l.KeyId.lower = x -> true
-        | _ -> false
-
     let mutable all: Child array = Array.empty
     let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
 
@@ -379,39 +343,11 @@ and Node(key: string, pos: Range) =
 
     new(key: string) = Node(key, Range.Zero)
 
-    member val KeyId: StringTokens = StringResource.stringManager.InternIdentifierToken(key) with get, set
-
-    member this.Key
-        with get () = StringResource.stringManager.GetStringForID(this.KeyId.normal).Trim quoteCharArray
-        and set value = this.KeyId <- StringResource.stringManager.InternIdentifierToken(value)
+    member val Key: string = key
 
     member val Position = pos
     member val Scope: Scope = scopeManager.AnyScope with get, set
     member val Trivia: Trivia option = None with get, set
-
-    member val KeyPrefixId: StringTokens option = None with get, set
-
-    member this.KeyPrefix
-        with get () =
-            this.KeyPrefixId
-            |> Option.map (fun pkid -> StringResource.stringManager.GetStringForID(pkid.normal))
-        and set value =
-            this.KeyPrefixId <-
-                value
-                |> Option.map (fun value -> StringResource.stringManager.InternIdentifierToken(value))
-
-    member val ValuePrefixId: StringTokens option = None with get, set
-
-    member this.ValuePrefix
-        with get () =
-            this.ValuePrefixId
-            |> Option.map (fun pkid -> StringResource.stringManager.GetStringForID(pkid.normal))
-        and set value =
-            this.ValuePrefixId <-
-                value
-                |> Option.map (fun value -> StringResource.stringManager.InternIdentifierToken(value))
-
-    member this.IsComplex = this.KeyPrefixId.IsSome || this.ValuePrefixId.IsSome
 
     member _.AllChildren = all |> ResizeArray<Child>
 
@@ -473,18 +409,11 @@ and Node(key: string, pos: Range) =
             | _ -> None)
 
     member this.Has key = all |> (Array.exists (bothFind key))
-    member this.HasById x = all |> (Array.exists (bothFindId x))
 
     member this.Tag x =
         this.GetLeavesArray()
         |> Array.tryPick (function
             | l when l.Key == x -> Some l.Value
-            | _ -> None)
-
-    member this.TagById x =
-        this.GetLeavesArray()
-        |> Array.tryPick (function
-            | l when l.KeyId.lower = x -> Some l.ValueId
             | _ -> None)
 
     member this.GetLeaves key =
@@ -497,11 +426,6 @@ and Node(key: string, pos: Range) =
     member this.GetLeaf(key: string) =
         this.GetLeavesArray() |> Array.tryFind (fun (item: Leaf) -> item.Key == key)
 
-    member this.LeafsById x =
-        this.GetLeavesArray()
-        |> Array.filter (fun l -> l.KeyId.lower = x)
-        |> Array.toSeq
-
     member this.Tags x =
         this.GetLeavesArray()
         |> Array.choose (function
@@ -512,14 +436,14 @@ and Node(key: string, pos: Range) =
     member this.TagText x =
         this.Tag x
         |> function
-            | Some(QString s) -> s.GetString()
+            | Some(QString s) -> s
             | Some s -> s.ToString()
             | None -> ""
 
     member this.TagsText x =
         this.Tags x
         |> Seq.map (function
-            | QString s -> s.GetString()
+            | QString s -> s
             | s -> s.ToString())
 
     member this.ReplaceOrAdd key value =
@@ -627,7 +551,6 @@ and Node(key: string, pos: Range) =
 
     interface IKeyPos with
         member this.Key = this.Key
-        member this.KeyId = this.KeyId
         member this.Position = this.Position
 
         member this.Trivia
@@ -688,16 +611,12 @@ module ProcessCore =
                 None, None, (lookupVC pos context sl [| v2; v1 |]) :: (acc |> List.skip 2)
             | Some(Value(_, v2)), Some(KeyValue(PosKeyValue(_, KeyValueItem(Key(k), v1, _)))), Value(pos, Clause sl) ->
                 let node: Node = lookupN k pos context sl
-                node.KeyPrefix <- Some(v2.ToRawString())
-                node.ValuePrefix <- Some(v1.ToRawString())
                 None, None, (NodeChild node) :: (acc |> List.skip 2)
             | _, Some(Value(pos, v2)), KeyValue(PosKeyValue(pos2, KeyValueItem(Key(k), Clause sl, _))) when
                 pos.StartLine = pos2.StartLine
                 ->
                 let node = lookupN k pos2 context sl
-                node.KeyPrefix <- Some(v2.ToRawString())
                 None, None, (NodeChild node) :: (acc |> List.skip 1)
-            //     None, None,
             | _ -> backone, Some next, (processNodeInner context next) :: acc
 
         and lookupN =
