@@ -97,4 +97,41 @@ public class ProcessTest
             Parsers.ParseScriptFile("123.txt", Text).GetResult()
         );
     }
+
+    [Test]
+    public void LeafTest()
+    {
+        var leaf = new Leaf("key1", Types.Value.NewStringValue("value"), Types.Operator.Equals);
+        Assert.Multiple(() =>
+        {
+            Assert.That(leaf.Key, Is.EqualTo("key1"));
+            Assert.That(leaf.Value.ToRawString(), Is.EqualTo("value"));
+            Assert.That(leaf.Operator, Is.EqualTo(Types.Operator.Equals));
+        });
+    }
+
+    [Test]
+    public void LeafValuesTest()
+    {
+        var leaf = LeafValue.Create(Types.Value.NewStringValue("value"));
+        Assert.That(leaf.Value.ToRawString(), Is.EqualTo("value"));
+        Assert.That(leaf.Key, Is.EqualTo(leaf.Value.ToRawString()));
+        Assert.That(leaf.ValueText, Is.EqualTo(leaf.Value.ToRawString()));
+    }
+
+    [Test]
+    public void NodeTest()
+    {
+        var node = new Node("key1", Position.Range.Zero);
+        Assert.Multiple(() =>
+        {
+            Assert.That(node.Key, Is.EqualTo("key1"));
+            Assert.That(node.AllArray, Is.Empty);
+            Assert.That(node.All, Is.Empty);
+            Assert.That(node.Children, Is.Empty);
+            Assert.That(node.Leaves, Is.Empty);
+            Assert.That(node.Comments, Is.Empty);
+            Assert.That(node.Position, Is.EqualTo(Position.Range.Zero));
+        });
+    }
 }
