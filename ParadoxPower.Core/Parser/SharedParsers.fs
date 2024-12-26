@@ -1,7 +1,6 @@
 ﻿namespace ParadoxPower.Parser
 
 open ParadoxPower.Process
-open ParadoxPower.Utilities
 open FParsec
 open ParadoxPower.Utilities.Position
 open Types

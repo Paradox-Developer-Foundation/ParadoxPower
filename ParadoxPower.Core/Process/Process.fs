@@ -2,12 +2,10 @@ namespace ParadoxPower.Process
 
 open System
 open System.Collections.Generic
-open System.Runtime.CompilerServices
 open ParadoxPower.Common
 open ParadoxPower.Parser
 open ParadoxPower.Utilities.Position
 open ParadoxPower.Utilities.Utils
-open ParadoxPower.Utilities
 
 module List =
     let replace f sub xs =
