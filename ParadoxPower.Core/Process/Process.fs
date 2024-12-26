@@ -528,24 +528,22 @@ and Node(key: string, pos: Range) =
             | c when c.Key == key -> Some c
             | _ -> None)
 
-    // TODO: 优化性能, 减少内存分配
     member this.ToRaw: Statement =
-        let children =
-            this.All
-            |> List.collect (function
-                | NodeChild n -> [ n.ToRaw ]
-                | LeafValueChild lv -> [ lv.ToRaw ]
-                | LeafChild l -> [ l.ToRaw ]
-                | ValueClauseChild vc ->
-                    let keys =
-                        vc.Keys
-                        |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
-                        |> List.ofArray
-
-                    keys @ [ Value(vc.Position, Value.Clause vc.ToRaw) ]
-                | CommentChild c -> [ (CommentStatement c) ])
-
-        KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause children, Operator.Equals)))
+        let children = ResizeArray<Statement>(this.AllArray.Length)
+        for child in this.AllArray do
+            match child with
+            | CommentChild c -> children.Add(CommentStatement c)
+            | NodeChild n -> children.Add(n.ToRaw)
+            | LeafValueChild lv -> children.Add(lv.ToRaw)
+            | LeafChild l -> children.Add(l.ToRaw)
+            | ValueClauseChild vc ->
+                let keys =
+                    vc.Keys
+                    |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
+                children.AddRange(keys)
+                children.Add(Value(vc.Position, Value.Clause vc.ToRaw))
+            
+        KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause (List.ofSeq children), Operator.Equals)))
 
     static member Create key = Node(key)
 
