@@ -12,7 +12,7 @@ type ParserError =
       ErrorMessage: string }
 
 type Parsers =
-    static member ParseScriptFile(filename: string, filetext: string) = CKParser.parseString filetext filename
+    static member ParseScriptFile(fileName: string, fileText: string) = CKParser.parseString fileText fileName
 
     static member ProcessStatements(filename: string, filepath: string, statements: Statement list) =
         simpleProcess.ProcessNode () filename (mkZeroFile filepath) statements
