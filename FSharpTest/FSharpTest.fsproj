@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ParadoxPower.Core\ParadoxPower.fsproj" />
+        <ProjectReference Include="..\ParadoxPower.Core\ParadoxPower.fsproj"/>
     </ItemGroup>
 
 </Project>
