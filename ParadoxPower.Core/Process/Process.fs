@@ -618,7 +618,6 @@ module ProcessCore =
         and lookupN =
             (fun (key: string) (pos: Range) (context: LookupContext) (sl: Statement list) ->
                 let n = Node(key, pos)
-                // let children = sl |> List.map (fun e -> (processNodeInner context e))
                 let children =
                     sl
                     |> List.fold (nodeWindowFun context) (None, None, [])
@@ -630,7 +629,6 @@ module ProcessCore =
         and lookupVC =
             (fun (pos: Range) (context: LookupContext) (sl: Statement list) keys ->
                 let vc = ValueClause(keys, pos)
-                //let children = sl |> List.map (fun e -> (processNodeInner context e))
                 let children =
                     sl
                     |> List.fold (nodeWindowFun context) (None, None, [])

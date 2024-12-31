@@ -4,6 +4,7 @@
 /// Anything to do with special names of identifiers and other lexical rules
 module ParadoxPower.Utilities.Position
 
+open System
 open System.IO
 open System.Collections.Generic
 open Microsoft.FSharp.Core.Printf

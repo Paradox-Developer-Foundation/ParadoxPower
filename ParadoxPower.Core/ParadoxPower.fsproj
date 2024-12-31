@@ -36,4 +36,8 @@
     <PackageReference Include="FSharp.Data" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ParadoxPower.Languages\ParadoxPower.Languages.csproj" />
+  </ItemGroup>
+
 </Project>

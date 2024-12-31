@@ -1,9 +1,9 @@
 ﻿namespace ParadoxPower.Parser
 
+open ParadoxPower.Languages
 open ParadoxPower.Process
 open FParsec
 open ParadoxPower.Utilities.Position
-open Types
 open ParadoxPower.Utilities.Utils
 
 module internal SharedParsers =
@@ -16,7 +16,7 @@ module internal SharedParsers =
 
     let betweenL (popen: Parser<_, _>) (pclose: Parser<_, _>) (p: Parser<_, _>) label =
         let notClosedError (pos: FParsec.Position) =
-            messageError $"The %s{label} opened at %s{pos.ToString()} was not closed."
+            messageError (System.String.Format(Resources.Parse_NotClosed, label, pos.ToString()))
 
         let expectedLabel = expected label
 
@@ -123,8 +123,8 @@ module internal SharedParsers =
 
     // Utility parsers
     // =======
-    let ws = spaces <?> "whitespace"
-    let str s = pstring s .>> ws <?> ("string " + s)
+    let ws = spaces <?> Resources.Parse_Whitespace
+    let str s = pstring s .>> ws <?> $"{Resources.Parse_String} {s}"
 
     let strSkip s =
         skipString s .>> ws <?> ("skip string " + s)
@@ -134,7 +134,7 @@ module internal SharedParsers =
     let chSkip c =
         skipChar c .>> ws <?> ("skip char " + string c)
     let clause inner =
-        betweenL (chSkip '{' <?> "opening brace") (skipChar '}' <?> "closing brace") inner "clause"
+        betweenL (chSkip '{' <?> Resources.Parse_OpeningBrace) (skipChar '}' <?> Resources.Parse_ClosingBrace) inner Resources.Parse_Clause
 
     let quotedCharSnippet = many1Satisfy (fun c -> c <> '\\' && c <> '"')
     let escapedChar = (pstring "\\\"" <|> pstring "\\") |>> string
@@ -161,16 +161,16 @@ module internal SharedParsers =
     let oppE = skipChar '=' |>> (fun _ -> Operator.Equals)
 
     let operator =
-        choiceL [ oppLTE; oppGTE; oppNE; oppEE; oppLT; oppGT; oppE; oppQE ] "operator"
+        choiceL [ oppLTE; oppGTE; oppNE; oppEE; oppLT; oppGT; oppE; oppQE ] Resources.Parse_Operator
         .>> ws
 
     let operatorLookahead =
         choice [ chSkip '='; chSkip '>'; chSkip '<'; chSkip '!'; strSkip "?=" ]
-        <?> "operator 1"
+        <?> $"{Resources.Parse_Operator} 1"
 
     let comment =
         parseWithPosition (skipChar '#' >>. restOfLine true .>> ws |>> string)
-        <?> "comment"
+        <?> Resources.Parse_Comment
 
     let key = (many1SatisfyL isIdChar "id character") .>> ws |>> Key <?> "id"
 
@@ -185,12 +185,12 @@ module internal SharedParsers =
         (many1SatisfyL isValueChar "value character")
         |>> string
         |>> String
-        <?> "string"
+        <?> Resources.Parse_String
 
     let valueQ =
-        betweenL (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar)) "quoted string"
+        betweenL (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar)) Resources.Parse_QuotedString
         |>> QString
-        <?> "quoted string"
+        <?> Resources.Parse_QuotedString
 
     let valueBYes =
         skipString "yes" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(true))
@@ -291,7 +291,7 @@ module internal SharedParsers =
         comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
         <|> (attempt (leafValue .>> notFollowedBy operatorLookahead |>> Value))
         <|> keyValue
-        <?> "statement"
+        <?> Resources.Parse_Statement
 
     let valueBlock =
         clause (many1 ((leafValue |>> Value) <|> (comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))))) |>> Clause
