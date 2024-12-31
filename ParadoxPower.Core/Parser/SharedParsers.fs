@@ -14,9 +14,9 @@ module internal SharedParsers =
             log $"%A{stream.Position}: Leaving %s{label} (%A{reply.Status})"
             reply
 
-    let betweenL (popen: Parser<_, _>) (pclose: Parser<_, _>) (p: Parser<_, _>) label =
+    let betweenL (popen: Parser<_, _>) (pclose: Parser<_, _>) (p: Parser<_, _>) (label: string) =
         let notClosedError (pos: FParsec.Position) =
-            messageError (System.String.Format(Resources.Parse_NotClosed, label, pos.ToString()))
+            messageError (System.String.Format(Resources.Parse_NotClosed, label))
 
         let expectedLabel = expected label
 
