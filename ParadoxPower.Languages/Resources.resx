@@ -72,4 +72,7 @@
     <data name="Parse.String" xml:space="preserve">
         <value>字符串</value>
     </data>
+    <data name="Parse.CaseInsensitive" xml:space="preserve">
+        <value>不区分大小写</value>
+    </data>
 </root>

@@ -69,6 +69,15 @@ namespace ParadoxPower.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 不区分大小写.
+        /// </summary>
+        public static string Parse_CaseInsensitive {
+            get {
+                return ResourceManager.GetString("Parse.CaseInsensitive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 子句.
         /// </summary>
         public static string Parse_Clause {

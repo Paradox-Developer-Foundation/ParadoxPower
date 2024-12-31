@@ -80,8 +80,10 @@ type Extensions =
                 match message with
                 | FParsec.Error.Expected e -> expectedA.Add(e)
                 | FParsec.Error.ExpectedString es -> expectedA.Add($"'{es}'")
+                | FParsec.Error.ExpectedStringCI es -> expectedA.Add($"'{es}' ({Resources.Parse_CaseInsensitive})")
                 | FParsec.Error.Unexpected u -> unexpectedA.Add(u)
                 | FParsec.Error.UnexpectedString us -> unexpectedA.Add($"'{us}'")
+                | FParsec.Error.UnexpectedStringCI us -> messageA.Add($"'{us}' ({Resources.Parse_CaseInsensitive})")
                 | FParsec.Error.Message m -> messageA.Add(m)
                 | FParsec.Error.NestedError _ ->
                     let ne = message :?> FParsec.ErrorMessage.NestedError

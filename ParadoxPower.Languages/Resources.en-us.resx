@@ -65,4 +65,7 @@
     <data name="Parse.String" xml:space="preserve">
         <value>string</value>
     </data>
+    <data name="Parse.CaseInsensitive" xml:space="preserve">
+        <value>case-insensitive</value>
+    </data>
 </root>
