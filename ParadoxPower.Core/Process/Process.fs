@@ -58,8 +58,7 @@ and Leaf =
     val mutable Operator: Operator
     val mutable Trivia: Trivia option
 
-    member this.ValueText =
-        this.Value.ToRawString()
+    member this.ValueText = this.Value.ToRawString()
 
     member this.ToRaw =
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key(this.Key), this.Value, this.Operator)))
@@ -91,11 +90,9 @@ and LeafValue(value: Value, ?pos: Range) =
     member val Trivia: Trivia option = None with get, set
     member val Value = value with get, set
 
-    member this.ValueText =
-        this.Value.ToRawString().Trim quoteCharArray
+    member this.ValueText = this.Value.ToRawString().Trim quoteCharArray
 
-    member this.Key =
-        this.ValueText
+    member this.Key = this.ValueText
 
     member val Position = defaultArg pos Range.Zero
     member this.ToRaw = Value(this.Position, this.Value)
@@ -114,13 +111,19 @@ and [<Struct>] Child =
     | NodeChild of node: Node
     | LeafChild of leaf: Leaf
     | CommentChild of comment: Comment
-    | LeafValueChild of leafvalue: LeafValue
-    | ValueClauseChild of valueclause: ValueClause
+    | LeafValueChild of leafValue: LeafValue
+    | ValueClauseChild of valueClause: ValueClause
+
+    member this.Position =
+        match this with
+        | NodeChild n -> n.Position
+        | LeafChild l -> l.Position
+        | CommentChild c -> c.Position
+        | LeafValueChild lv -> lv.Position
+        | ValueClauseChild vc -> vc.Position
 
 and ValueClause(keys: Value[], pos: Range) =
-    let mutable _keys: string array =
-        keys
-        |> Array.map (fun v -> v.ToString())
+    let mutable _keys: string array = keys |> Array.map (fun v -> v.ToString())
 
     let bothFind (x: string) =
         function
@@ -260,19 +263,11 @@ and ValueClause(keys: Value[], pos: Range) =
             | c when c.Key == x -> Some c
             | _ -> None)
 
-    member this.FirstKey =
-        if _keys.Length > 0 then
-            Some(_keys[0])
-        else
-            None
+    member this.FirstKey = if _keys.Length > 0 then Some(_keys[0]) else None
 
     member this.FirstKeyId = if _keys.Length > 0 then Some _keys[0] else None
 
-    member this.SecondKey =
-        if _keys.Length > 0 then
-            Some(_keys[1])
-        else
-            None
+    member this.SecondKey = if _keys.Length > 0 then Some(_keys[1]) else None
 
     member _.Keys = _keys
 
@@ -500,10 +495,12 @@ and Node(key: string, pos: Range) =
     member this.AddChildren(children: Child IReadOnlyList) =
         let newArray = Array.zeroCreate (all.Length + children.Count)
         Array.Copy(all, newArray, all.Length)
+
         for i in 0 .. children.Count - 1 do
             newArray[all.Length + i] <- children[i]
+
         this.AllArray <- newArray
-    
+
     member this.AddChildren(children: Child seq) =
         match children with
         | :? IReadOnlyList<Child> as children -> this.AddChildren(children)
@@ -511,7 +508,7 @@ and Node(key: string, pos: Range) =
             let resizeArray = this.AllChildren
             resizeArray.AddRange(children)
             this.AllArray <- resizeArray.ToArray()
-    
+
     member this.GetChild(key: string) =
         Seq.tryPick
             (function
@@ -528,6 +525,7 @@ and Node(key: string, pos: Range) =
 
     member this.ToRaw: Statement =
         let children = ResizeArray<Statement>(this.AllArray.Length)
+
         for child in this.AllArray do
             match child with
             | CommentChild c -> children.Add(CommentStatement c)
@@ -535,13 +533,11 @@ and Node(key: string, pos: Range) =
             | LeafValueChild lv -> children.Add(lv.ToRaw)
             | LeafChild l -> children.Add(l.ToRaw)
             | ValueClauseChild vc ->
-                let keys =
-                    vc.Keys
-                    |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
+                let keys = vc.Keys |> Array.map (fun k -> Value(Range.Zero, Value.String(k)))
                 children.AddRange(keys)
                 children.Add(Value(vc.Position, Value.Clause vc.ToRaw))
-            
-        KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause (List.ofSeq children), Operator.Equals)))
+
+        KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause(List.ofSeq children), Operator.Equals)))
 
     static member Create key = Node(key)
 
@@ -618,6 +614,7 @@ module ProcessCore =
         and lookupN =
             (fun (key: string) (pos: Range) (context: LookupContext) (sl: Statement list) ->
                 let n = Node(key, pos)
+
                 let children =
                     sl
                     |> List.fold (nodeWindowFun context) (None, None, [])
@@ -629,6 +626,7 @@ module ProcessCore =
         and lookupVC =
             (fun (pos: Range) (context: LookupContext) (sl: Statement list) keys ->
                 let vc = ValueClause(keys, pos)
+
                 let children =
                     sl
                     |> List.fold (nodeWindowFun context) (None, None, [])
