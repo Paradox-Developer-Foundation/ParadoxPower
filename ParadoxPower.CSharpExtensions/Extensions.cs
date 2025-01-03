@@ -57,6 +57,13 @@ public static class Extensions
         node.AddChild(new Leaf(key, Types.Value.NewQStringValue(value), op));
     }
 
+    /// <summary>
+    /// 尝试在当前 <see cref="Node"/> 中查找指定键的 <see cref="Leaf"/>
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="key">查找的键, 大小写不敏感</param>
+    /// <param name="leaf"></param>
+    /// <returns>找到值时返回<c>true</c>, 反之为<c>false</c></returns>
     public static bool TryGetLeaf(this Node node, string key, [NotNullWhen(true)] out Leaf? leaf)
     {
         foreach (var leafValue in node.GetLeavesArray())
@@ -72,6 +79,13 @@ public static class Extensions
         return false;
     }
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="n"></param>
+    /// <param name="key">查找的键, 大小写不敏感</param>
+    /// <param name="node"></param>
+    /// <returns>找到值时返回<c>true</c>, 反之为<c>false</c></returns>
     public static bool TryGetNode(this Node n, string key, [NotNullWhen(true)] out Node? node)
     {
         foreach (var child in n.AllArray)
@@ -91,5 +105,32 @@ public static class Extensions
 
         node = null;
         return false;
+    }
+
+    /// <summary>
+    /// 按顺序查找指定键的嵌套 <see cref="Node"/>
+    /// </summary>
+    /// <param name="n"></param>
+    /// <param name="node"></param>
+    /// <param name="keys">查找的键, 大小写不敏感</param>
+    /// <returns>找到值时返回<c>true</c>, 反之为<c>false</c></returns>
+    public static bool TryGetNode(
+        this Node n,
+        [NotNullWhen(true)] out Node? node,
+        params ReadOnlySpan<string> keys
+    )
+    {
+        var currentNode = n;
+        foreach (string key in keys)
+        {
+            if (!currentNode.TryGetNode(key, out currentNode))
+            {
+                node = null;
+                return false;
+            }
+        }
+
+        node = currentNode;
+        return true;
     }
 }

@@ -22,7 +22,7 @@ public class ProcessTest
     [SetUp]
     public void Setup()
     {
-        _root = CreateNode();
+        _root = ParserHelper.Parse(Text);
     }
 
     [Test]
@@ -73,7 +73,7 @@ public class ProcessTest
     [Test]
     public void AddChildTest()
     {
-        var node = CreateNode();
+        var node = ParserHelper.Parse(Text);
         node.AddChild(
             Leaf.Create(
                 Types.KeyValueItem.NewKeyValueItem(
@@ -87,15 +87,6 @@ public class ProcessTest
         Assert.That(node.TryGetLeaf("addKey", out var leaf), Is.True);
         Assert.That(leaf!.Value.ToRawString(), Is.EqualTo("1"));
         Assert.That(leaf.Value.IsInt, Is.True);
-    }
-
-    private static Node CreateNode()
-    {
-        return Parsers.ProcessStatements(
-            "123",
-            "123",
-            Parsers.ParseScriptFile("123.txt", Text).GetResult()
-        );
     }
 
     [Test]
