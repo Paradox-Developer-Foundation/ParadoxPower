@@ -245,12 +245,15 @@ type Range(code: int64, fidx: int16) =
 
     override r.Equals(obj) =
         match obj with
-        | :? Range as other -> (r :> IEquatable<Range>).Equals(other)
+        | :? Range as other -> r.Equals(other)
         | _ -> false
+
+    member r.Equals(other: Range) =
+        code = other.Code
 
     interface IEquatable<Range> with
         member r.Equals(other: Range) =
-            code = other.Code
+            r.Equals(other)
 
     override r.GetHashCode() = hash code
 
