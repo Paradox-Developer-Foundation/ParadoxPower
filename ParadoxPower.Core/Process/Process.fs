@@ -311,6 +311,7 @@ and ValueClause(keys: Value[], pos: Range) =
         member this.TagText x = this.TagText x
         member this.Tag x = this.Tag x
 
+
 and Node(key: string, pos: Range) =
     let bothFind (key: string) =
         function
@@ -342,9 +343,9 @@ and Node(key: string, pos: Range) =
     member val Scope: Scope = scopeManager.AnyScope with get, set
     member val Trivia: Trivia option = None with get, set
 
-    member _.AllChildren = all |> ResizeArray<Child>
+    member internal _.AllChildren = all |> ResizeArray<Child>
 
-    member _.AllChildren
+    member internal _.AllChildren
         with set (value: ResizeArray<Child>) =
             all <- (value |> Seq.toArray)
             resetLeaves ()
@@ -357,9 +358,9 @@ and Node(key: string, pos: Range) =
             all <- value
             resetLeaves ()
 
-    member this.All = all |> List.ofSeq
+    member internal this.All = all |> List.ofSeq
 
-    member this.All
+    member internal this.All
         with set (value: Child list) =
             all <- (value |> List.toArray)
             resetLeaves ()
