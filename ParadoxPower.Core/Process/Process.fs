@@ -2,6 +2,7 @@ namespace ParadoxPower.Process
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open ParadoxPower.Common
 open ParadoxPower.Parser
 open ParadoxPower.Utilities.Position
@@ -51,7 +52,7 @@ type IClause =
     abstract member Tag: string -> Value option
     abstract member TagText: string -> string
 
-and Leaf =
+and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
     val mutable Value: Value
     val mutable Key: string
     val mutable Position: Range
@@ -86,7 +87,7 @@ and Leaf =
             with get () = this.Trivia
             and set v = this.Trivia <- v
 
-and LeafValue(value: Value, ?pos: Range) =
+and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
     member val Trivia: Trivia option = None with get, set
     member val Value = value with get, set
 
@@ -311,8 +312,7 @@ and ValueClause(keys: Value[], pos: Range) =
         member this.TagText x = this.TagText x
         member this.Tag x = this.Tag x
 
-
-and Node(key: string, pos: Range) =
+and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     let bothFind (key: string) =
         function
         | NodeChild n when n.Key == key -> true
@@ -668,141 +668,5 @@ module ProcessCore =
                     sl)
 
     let processNodeBasic = BaseProcess().ProcessNode()
-
-    let rec foldNode fNode acc (node: Node) : 'r =
-        let recurse = foldNode fNode
-        let newAcc = fNode acc node
-        node.Children |> Seq.fold recurse newAcc
-
-    let foldNode2 fNode fCombine acc (node: Node) =
-        let rec loop nodes cont =
-            match nodes with
-            | x: Node :: tail ->
-                loop x.Children (fun accChildren ->
-                    let resNode = fNode x accChildren
-                    loop tail (fun accTail -> cont (fCombine resNode accTail)))
-            | [] -> cont acc
-
-        loop [ node ] id
-
-    let foldClause2 fNode fCombine acc (node: IClause) =
-        let rec loop nodes cont =
-            match nodes with
-            | x: IClause :: tail ->
-                loop (x.Clauses |> List.ofSeq) (fun accChildren ->
-                    let resNode = fNode x accChildren
-                    loop tail (fun accTail -> cont (fCombine resNode accTail)))
-            | [] -> cont acc
-
-        loop [ node ] id
-
-    let foldNode3 fNode (node: Node) =
-        let rec loop nodes cont =
-            //Rewrite to use a parralel seq for each child
-            match nodes with
-            | x: Node :: tail ->
-                let y =
-                    loop x.Children (fun _ ->
-                        let resNode = fNode x
-
-                        loop tail (fun accTail ->
-                            cont (
-                                seq {
-                                    yield! resNode
-                                    yield! accTail
-                                }
-                            )))
-
-                y
-            // cont(fCombine resNode accTail) ))
-            | [] ->
-                let x = cont Seq.empty
-                x
-
-        loop [ node ] id |> List.ofSeq
-
-    let foldNode4 fNode (node: Node) =
-        let rec loop (nodes: seq<Node>) =
-            seq {
-                yield! nodes |> Seq.collect fNode
-                let x = nodes |> Seq.collect (fun n -> n.Nodes)
-                yield! loop x
-            }
-
-        loop (seq { yield node }) |> List.ofSeq
-
-
-    let foldNode5 fNode (node: Node) =
-        let rec loop nodes cont =
-            match nodes with
-            | x: Node :: tail ->
-                loop x.Children (fun a ->
-                    let resNode = fNode x
-
-                    loop tail (fun accTail ->
-                        cont (
-                            seq {
-                                yield! a
-                                yield! resNode
-                                yield! accTail
-                            }
-                        )))
-            | [] -> cont Seq.empty
-
-        loop [ node ] id
-
-    let foldNode6 fNode (node: Node) =
-        let rec loop nodes cont =
-            match nodes with
-            | x: Node :: tail ->
-                loop x.Children (fun _ ->
-                    let resNode = fNode x
-                    loop tail (fun accTail -> cont (resNode :: accTail)))
-            | [] -> cont []
-
-        loop [ node ] id //|> List.collect
-
-    let foldNode7 fNode (node: Node) =
-        let rec loop acc (node: Node) =
-            let resNode = fNode node acc
-            node.Children |> List.fold loop resNode
-        //| [] -> acc
-        loop [] node
-
-    let foldNode8 fNode fCombine acc (node: Node) =
-        let rec loop acc nodes =
-            match nodes with
-            | (x: Node) ->
-                let resNode = fNode x acc
-                x.Children |> List.map (loop resNode) |> fCombine
-        //| [] -> acc
-        loop acc node
-
-    let rec foldNodeWithState fNode acc (node: Node) =
-        let recurse = foldNodeWithState fNode
-        let newAcc, res = fNode acc node
-
-        match res with
-        | None -> (node.Children |> List.collect (recurse newAcc))
-        | Some e -> e :: (node.Children |> List.collect (recurse newAcc))
-    //res::(node.Children |> List.collect (recurse newAcc))
-
-    let rec cata fNode (node: Node) : 'r =
-        let recurse = cata fNode
-        fNode node (node.Children |> Seq.map recurse)
-
-    let rec cataNodeIter fNode (node: Node) =
-        let recurse = cataNodeIter fNode
-        if fNode node then () else node.Nodes |> Seq.iter recurse
-
-    let rec cataIter fChild (child: Child) =
-        let recurse = cataIter fChild
-
-        if fChild child then
-            ()
-        else
-            match child with
-            | NodeChild node -> node.AllArray |> Array.iter recurse
-            | _ -> ()
 
     let simpleProcess = BaseProcess()
