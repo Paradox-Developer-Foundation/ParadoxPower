@@ -373,9 +373,7 @@ and Node(key: string, pos: Range) =
 
     member this.Children = this.Nodes |> List.ofSeq
 
-    member this.Leaves: Leaf seq = this.GetLeavesArray()
-
-    member this.Values = this.Leaves |> List.ofSeq
+    member this.Leaves: Leaf IReadOnlyCollection = this.GetLeavesArray()
 
     member this.Comments =
         all
