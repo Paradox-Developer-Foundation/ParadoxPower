@@ -133,4 +133,94 @@ public static class Extensions
         node = currentNode;
         return true;
     }
+    
+    /// <summary>
+    /// 尝试获取 <see cref="Child"/> 中的 <see cref="Leaf"/>
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="leaf"></param>
+    /// <returns>当 <see cref="Child"/> 为 <see cref="Leaf"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
+    public static bool TryGetLeaf(this Child child, [NotNullWhen(true)] out Leaf? leaf)
+    {
+        if (child.IsLeafChild)
+        {
+            leaf = child.leaf;
+            return true;
+        }
+
+        leaf = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// 尝试获取 <see cref="Child"/> 中的 <see cref="Node"/>
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="node"></param>
+    /// <returns>当 <see cref="Child"/> 为 <see cref="Node"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
+    public static bool TryGetNode(this Child child, [NotNullWhen(true)] out Node? node)
+    {
+        if (child.IsNodeChild)
+        {
+            node = child.node;
+            return true;
+        }
+
+        node = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// 尝试获取 <see cref="Child"/> 中的 <see cref="LeafValue"/>
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="leafValue"></param>
+    /// <returns>当 <see cref="Child"/> 为 <see cref="LeafValue"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
+    public static bool TryGetLeafValue(this Child child, [NotNullWhen(true)] out LeafValue? leafValue)
+    {
+        if (child.IsLeafValueChild)
+        {
+            leafValue = child.leafValue;
+            return true;
+        }
+
+        leafValue = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// 尝试获取 <see cref="Child"/> 中的 <see cref="Comment"/>
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="comment"></param>
+    /// <returns>当 <see cref="Child"/> 为 <see cref="Comment"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
+    public static bool TryGetComment(this Child child, [NotNullWhen(true)] out Comment? comment)
+    {
+        if (child.IsCommentChild)
+        {
+            comment = child.comment;
+            return true;
+        }
+
+        comment = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// 尝试获取 <see cref="Child"/> 中的 <see cref="ValueClause"/>
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="valueClause"></param>
+    /// <returns>当 <see cref="Child"/> 为 <see cref="ValueClause"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
+    public static bool TryGetValueClause(this Child child, [NotNullWhen(true)] out ValueClause? valueClause)
+    {
+        if (child.IsValueClauseChild)
+        {
+            valueClause = child.valueClause;
+            return true;
+        }
+
+        valueClause = null;
+        return false;
+    }
 }

@@ -4,11 +4,12 @@
     <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
-    <Version>0.7.1-beta</Version>
+    <Version>0.8.0-beta</Version>
     <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Authors>textGamex</Authors>
+    <Description>A Paradox parser, used for parsing Paradox script files</Description>
   </PropertyGroup>
 
   <ItemGroup>
