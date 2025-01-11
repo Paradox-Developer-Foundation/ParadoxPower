@@ -64,6 +64,8 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
     member this.ToRaw =
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key(this.Key), this.Value, this.Operator)))
 
+    override this.ToString()= $"{this.Key}={this.ValueText}"
+
     new(key: string, value: Value, pos: Range, op: Operator) =
         { Key = key
           Value = value
@@ -94,6 +96,8 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
     member this.ValueText = this.Value.ToRawString().Trim quoteCharArray
 
     member this.Key = this.ValueText
+
+    override this.ToString() = this.Key
 
     member val Position = defaultArg pos Range.Zero
     member this.ToRaw = Value(this.Position, this.Value)
