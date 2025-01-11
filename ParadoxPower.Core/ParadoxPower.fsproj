@@ -4,10 +4,11 @@
     <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
-    <Version>0.6.3-beta</Version>
+    <Version>0.7.0-beta</Version>
     <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Authors>textGamex</Authors>
   </PropertyGroup>
 
   <ItemGroup>

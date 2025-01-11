@@ -274,7 +274,7 @@ module internal SharedParsers =
     let rgb = strSkip "rgb" >>. rgbI .>> ws
     let rgbC = strSkip "RGB" >>. rgbI .>> ws
 
-    let metaprograming =
+    let metaPrograming =
         pipe3 (pstring "@\\[") metaprogrammingCharSnippet (ch ']') (fun a b c -> (a + b + string c))
         |>> String
     // Complex types
@@ -305,7 +305,7 @@ module internal SharedParsers =
         let fP = attempt valueF
         let byP = attempt valueBYes <|> valueS
         let bnP = attempt valueBNo <|> valueS
-        let mpP = metaprograming
+        let mpP = metaPrograming
 
         fun (stream: CharStream<_>) ->
             match stream.Peek() with

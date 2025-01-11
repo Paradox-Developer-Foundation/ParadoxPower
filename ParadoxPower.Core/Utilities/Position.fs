@@ -270,7 +270,7 @@ let memoize (keyFunction: 'a -> 'b) (memFunction: 'a -> 'c) =
 
 
 let mkRangePath (f: string) =
-    if System.IO.Path.IsPathRooted f then
+    if Path.IsPathRooted f then
         try
             Path.GetFullPath f
         with _ ->
