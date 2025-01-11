@@ -119,6 +119,12 @@ and [<Struct>] Child =
     | LeafValueChild of leafValue: LeafValue
     | ValueClauseChild of valueClause: ValueClause
 
+    static member Create node = NodeChild node
+    static member Create leaf = LeafChild leaf
+    static member Create comment = CommentChild comment
+    static member Create leafValue = LeafValueChild leafValue
+    static member Create valueClause = ValueClauseChild valueClause
+
     member this.Position =
         match this with
         | NodeChild n -> n.Position
