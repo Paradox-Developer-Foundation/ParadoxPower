@@ -256,6 +256,8 @@ type Range(code: int64, fidx: int16) =
             r.Equals(other)
 
     override r.GetHashCode() = hash code
+    static member op_Equality (left: Range, right: Range) = left.Equals(right)
+    static member op_Inequality (left: Range, right: Range) = not (left.Equals(right))
 
 let memoize (keyFunction: 'a -> 'b) (memFunction: 'a -> 'c) =
     let dict = new System.Collections.Concurrent.ConcurrentDictionary<'b, 'c>()
