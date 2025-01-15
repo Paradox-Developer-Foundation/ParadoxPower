@@ -15,7 +15,7 @@ module internal SharedParsers =
             reply
 
     let betweenL (popen: Parser<_, _>) (pclose: Parser<_, _>) (p: Parser<_, _>) (label: string) =
-        let notClosedError (pos: FParsec.Position) =
+        let notClosedError =
             messageError (System.String.Format(Resources.Parse_NotClosed, label))
 
         let expectedLabel = expected label
@@ -50,7 +50,7 @@ module internal SharedParsers =
                     if reply3.Status = Ok then
                         Reply(Ok, reply2.Result, error3)
                     else
-                        Reply(reply3.Status, mergeErrors error3 (notClosedError (state0.GetPosition(stream))))
+                        Reply(reply3.Status, mergeErrors error3 notClosedError)
                 else
                     Reply(reply2.Status, reply2.Error)
             else
@@ -124,23 +124,31 @@ module internal SharedParsers =
     // Utility parsers
     // =======
     let whiteSpace = spaces <?> Resources.Parse_Whitespace
-    let str s = pstring s .>> whiteSpace <?> $"{Resources.Parse_String} {s}"
+
+    let str s =
+        pstring s .>> whiteSpace <?> $"{Resources.Parse_String} {s}"
 
     let strSkip s =
         skipString s .>> whiteSpace <?> ("skip string " + s)
 
-    let ch c = pchar c .>> whiteSpace <?> ("char " + string c)
+    let ch c =
+        pchar c .>> whiteSpace <?> ("char " + string c)
 
     let chSkip c =
         skipChar c .>> whiteSpace <?> ("skip char " + string c)
+
     let clause inner =
-        betweenL (chSkip '{' <?> Resources.Parse_OpeningBrace) (skipChar '}' <?> Resources.Parse_ClosingBrace) inner Resources.Parse_Clause
+        betweenL
+            (chSkip '{' <?> Resources.Parse_OpeningBrace)
+            (skipChar '}' <?> Resources.Parse_ClosingBrace)
+            inner
+            Resources.Parse_Clause
 
     let quotedCharSnippet = many1Satisfy (fun c -> c <> '\\' && c <> '"')
     let escapedChar = (pstring "\\\"" <|> pstring "\\") |>> string
     let metaprogrammingCharSnippet = many1Satisfy (fun c -> c <> ']' && c <> '\\')
 
-    let getRange (start: FParsec.Position) (endp: FParsec.Position) =
+    let getRange (start: Position) (endp: Position) =
         mkRange
             start.StreamName
             (mkPos (int start.Line) (int start.Column - 1))
@@ -182,9 +190,7 @@ module internal SharedParsers =
         <?> "quoted key"
 
     let valueStr =
-        (many1SatisfyL isValueChar "value character")
-        |>> string
-        |>> String
+        (many1SatisfyL isValueChar "value character") |>> string |>> String
         <?> Resources.Parse_String
 
     let valueQ =
@@ -215,8 +221,40 @@ module internal SharedParsers =
                     | a, b, c, None -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
         )
 
-    let hsv = strSkip "hsv" >>. opt (strSkip "360") >>. hsvI .>> whiteSpace
-    let hsvC = strSkip "HSV" >>. hsvI .>> whiteSpace
+    // 我们将 hsv 和 rgb 这一类的附加值当作 Leaf 处理
+    let hsvCore (typeName: string) =
+        pipe3
+            (parseWithPosition (pstring typeName .>> whiteSpace))
+            (opt (parseWithPosition (pstring "360" .>> whiteSpace)))
+            hsvI
+            (fun (pos, hsvText) hueMode color ->
+                match color with
+                | Clause clause ->
+                    match hueMode with
+                    | Some(hueModePos, hueModeText) ->
+                        Clause(
+                            Statement.KeyValue(
+                                PosKeyValue(pos, KeyValueItem(Key(hsvText), Value.String(hsvText), Operator.Equals))
+                            )
+                            :: Statement.KeyValue(
+                                PosKeyValue(
+                                    hueModePos,
+                                    KeyValueItem(Key(hueModeText), Value.String(hueModeText), Operator.Equals)
+                                )
+                            )
+                            :: clause
+                        )
+                    | None ->
+                        Clause(
+                            Statement.KeyValue(
+                                PosKeyValue(pos, KeyValueItem(Key(hsvText), Value.String(hsvText), Operator.Equals))
+                            )
+                            :: clause
+                        )
+                | _ -> failwith "assert")
+
+    let hsv = hsvCore "hsv"
+    let hsvC = hsvCore "HSV"
 
     let rgbI =
         clause (
@@ -232,8 +270,21 @@ module internal SharedParsers =
                     | a, b, c, None -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
         )
 
-    let rgb = strSkip "rgb" >>. rgbI .>> whiteSpace
-    let rgbC = strSkip "RGB" >>. rgbI .>> whiteSpace
+    let rgbCore (typeName: string) =
+        pipe2 (parseWithPosition (pstring typeName .>> whiteSpace)) rgbI (fun (pos, text) color ->
+            match color with
+            | Clause clause ->
+                Clause(
+                    Statement.KeyValue(PosKeyValue(pos, KeyValueItem(Key(text), Value.String(text), Operator.Equals)))
+                    :: clause
+                )
+            | _ -> failwith "assert")
+        .>> whiteSpace
+        <?> typeName
+
+    let rgb = rgbCore "rgb"
+
+    let rgbC = rgbCore "RGB"
 
     let metaPrograming =
         pipe3 (pstring "@\\[") metaprogrammingCharSnippet (ch ']') (fun a b c -> (a + b + string c))
@@ -249,13 +300,21 @@ module internal SharedParsers =
         pipe3 getPosition (value .>> whiteSpace) getPosition (fun a b c -> (getRange a c, b))
 
     let statement =
-        comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
+        comment
+        |>> (fun (range, str) -> CommentStatement({ Position = range; Comment = str }))
         <|> (attempt (leafValue .>> notFollowedBy operatorLookahead |>> Value))
         <|> keyValue
         <?> Resources.Parse_Statement
 
     let valueBlock =
-        clause (many1 ((leafValue |>> Value) <|> (comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))))) |>> Clause
+        clause (
+            many1 (
+                (leafValue |>> Value)
+                <|> (comment
+                     |>> (fun (range, str) -> CommentStatement({ Position = range; Comment = str })))
+            )
+        )
+        |>> Clause
         <?> "value clause"
 
     let valueClause = clause (many statement) |>> Clause
@@ -282,7 +341,7 @@ module internal SharedParsers =
                     if f.Status = Ok then f else valueStr stream
             | _ ->
                 match stream.PeekString 3, stream.PeekString 2 with
-                | "rgb", _ -> printfn "rgb"; rgb stream;
+                | "rgb", _ -> rgb stream
                 | "RGB", _ -> rgbC stream
                 | "hsv", _ -> hsv stream
                 | "HSV", _ -> hsvC stream
@@ -293,14 +352,18 @@ module internal SharedParsers =
 
     valueimpl.Value <- valueCustom <?> "value"
 
-    keyvalueimpl.Value
-        <- pipe5 getPosition (keyQ <|> key) operator value (getPosition .>> whiteSpace) (fun start id op value endp ->
-        KeyValue(PosKeyValue(getRange start endp, KeyValueItem(id, value, op))))
+    keyvalueimpl.Value <-
+        pipe5 getPosition (keyQ <|> key) operator value (getPosition .>> whiteSpace) (fun start id op value endp ->
+            KeyValue(PosKeyValue(getRange start endp, KeyValueItem(id, value, op))))
 
     let alle = whiteSpace >>. many statement .>> eof |>> ParsedFile
 
     let valueList =
-        many1 ((comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))) <|> (leafValue |>> Value))
+        many1 (
+            (comment
+             |>> (fun (range, str) -> CommentStatement({ Position = range; Comment = str })))
+            <|> (leafValue |>> Value)
+        )
         .>> eof
 
     let statementList = (many statement) .>> eof
