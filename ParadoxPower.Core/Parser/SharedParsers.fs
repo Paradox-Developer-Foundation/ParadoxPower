@@ -251,26 +251,6 @@ module internal SharedParsers =
                     | a, b, c, None -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
         )
 
-
-    let rgb3 =
-        clause (
-            pipe3
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (fun a b c -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
-        )
-
-    let rgb4 =
-        clause (
-            pipe4
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (fun a b c d -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c; Statement.Value d ])
-        )
-
     let rgb = strSkip "rgb" >>. rgbI .>> ws
     let rgbC = strSkip "RGB" >>. rgbI .>> ws
 
@@ -321,7 +301,7 @@ module internal SharedParsers =
                     if f.Status = Ok then f else valueS stream
             | _ ->
                 match stream.PeekString 3, stream.PeekString 2 with
-                | "rgb", _ -> rgb stream
+                | "rgb", _ -> printfn "rgb"; rgb stream;
                 | "RGB", _ -> rgbC stream
                 | "hsv", _ -> hsv stream
                 | "HSV", _ -> hsvC stream
