@@ -243,7 +243,7 @@ type Range(code: int64, fidx: int16) =
 
     member r.Code = code
 
-    override r.Equals(obj) =
+    override r.Equals(obj: obj) =
         match obj with
         | :? Range as other -> r.Equals(other)
         | _ -> false
@@ -253,7 +253,7 @@ type Range(code: int64, fidx: int16) =
 
     interface IEquatable<Range> with
         member r.Equals(other: Range) =
-            r.Equals(other)
+            code = other.Code
 
     override r.GetHashCode() = hash code
     static member op_Equality (left: Range, right: Range) = left.Equals(right)
