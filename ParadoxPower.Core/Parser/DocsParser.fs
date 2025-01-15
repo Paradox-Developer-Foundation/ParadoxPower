@@ -12,19 +12,19 @@ module DocsParser =
     let private isvaluechar = SharedParsers.isValueChar
 
     let private header =
-        skipCharsTillString "DOCUMENTATION ==" true 2000 .>> SharedParsers.ws
+        skipCharsTillString "DOCUMENTATION ==" true 2000 .>> SharedParsers.whiteSpace
         <?> "header"
 
     let private name =
-        (many1Chars idChar) .>> SharedParsers.ws .>> pchar '-' .>>. restOfLine false
-        .>> SharedParsers.ws
+        (many1Chars idChar) .>> SharedParsers.whiteSpace .>> pchar '-' .>>. restOfLine false
+        .>> SharedParsers.whiteSpace
         <?> "name"
 
     let private usage =
-        charsTillString "Supported scopes:" true 2000 .>> SharedParsers.ws <?> "usage"
+        charsTillString "Supported scopes:" true 2000 .>> SharedParsers.whiteSpace <?> "usage"
 
     let private usageC =
-        charsTillString "Supported Scopes:" true 2000 .>> SharedParsers.ws <?> "usage"
+        charsTillString "Supported Scopes:" true 2000 .>> SharedParsers.whiteSpace <?> "usage"
 
     let private scope =
         many1Satisfy (fun c -> isvaluechar c || c = '?' || c = '(' || c = ')')
@@ -32,10 +32,10 @@ module DocsParser =
         <?> "scope"
 
     let private target = many1Satisfy isvaluechar .>> many (skipChar ' ') <?> "target"
-    let private targets = manyTill target newline .>> SharedParsers.ws <?> "targets"
+    let private targets = manyTill target newline .>> SharedParsers.whiteSpace <?> "targets"
 
     let private scopesWithoutTarget =
-        manyTill scope newline |>> (fun x -> (x, [])) .>> SharedParsers.ws <?> "scopes"
+        manyTill scope newline |>> (fun x -> (x, [])) .>> SharedParsers.whiteSpace <?> "scopes"
 
     let private scopes =
         manyTill
@@ -68,9 +68,9 @@ module DocsParser =
         <?> "doc"
 
     let private footer: Parser<unit, unit> =
-        skipString "=================" .>> SharedParsers.ws
+        skipString "=================" .>> SharedParsers.whiteSpace
 
-    let private docFile = SharedParsers.ws >>. header >>. many doc .>> footer
+    let private docFile = SharedParsers.whiteSpace >>. header >>. many doc .>> footer
 
     let private twoDocs = docFile .>>. docFile
 
@@ -101,35 +101,35 @@ module JominiParser =
     let private isvaluechar = SharedParsers.isValueChar
 
     let private header =
-        skipCharsTillString "Event Target Documentation:" true 2000 .>> SharedParsers.ws
+        skipCharsTillString "Event Target Documentation:" true 2000 .>> SharedParsers.whiteSpace
         <?> "header"
 
-    let private spacer = skipString "--------------------" .>> SharedParsers.ws
+    let private spacer = skipString "--------------------" .>> SharedParsers.whiteSpace
 
     let private name =
-        (many1Chars idChar) .>> SharedParsers.ws .>> pchar '-' .>>. restOfLine false
-        .>> SharedParsers.ws
+        (many1Chars idChar) .>> SharedParsers.whiteSpace .>> pchar '-' .>>. restOfLine false
+        .>> SharedParsers.whiteSpace
         <?> "name"
 
     let private reqData =
-        pstring "Requires Data: yes" .>> SharedParsers.ws <?> "requires data"
+        pstring "Requires Data: yes" .>> SharedParsers.whiteSpace <?> "requires data"
 
-    let private wildCard = pstring "Wild Card: yes" .>> SharedParsers.ws <?> "wildcard"
+    let private wildCard = pstring "Wild Card: yes" .>> SharedParsers.whiteSpace <?> "wildcard"
 
     let private globalLink =
-        pstring "Global Link: yes" .>> SharedParsers.ws <?> "globallink"
+        pstring "Global Link: yes" .>> SharedParsers.whiteSpace <?> "globallink"
 
     let private inscopes =
         pstring "Input Scopes: "
         >>. sepBy (manyChars (noneOf ("," + "\r\n"))) (pstring ",")
         .>> newline
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
 
     let private outscopes =
         pstring "Output Scopes: "
         >>. sepBy (manyChars (noneOf ("," + "\r\n"))) (pstring ",")
         .>> newline
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
 
     let private link =
         pipe6 name (opt reqData) (opt wildCard) (opt globalLink) (opt inscopes) (opt outscopes) (fun (n, d) r w g i o ->
@@ -139,7 +139,7 @@ module JominiParser =
         pstring "Event Targets Saved from Code:" .>> many1Chars anyChar .>> eof
 
     let private linkFile =
-        SharedParsers.ws >>. header >>. spacer >>. many (attempt (link .>> spacer))
+        SharedParsers.whiteSpace >>. header >>. spacer >>. many (attempt (link .>> spacer))
         .>> footer
 
     let parseLinksFile filepath =
@@ -152,32 +152,32 @@ module JominiParser =
         | Failure(e, _, _) -> failwith e)
 
     let private triggerheader =
-        skipCharsTillString "Trigger Documentation:" true 2000 .>> SharedParsers.ws
+        skipCharsTillString "Trigger Documentation:" true 2000 .>> SharedParsers.whiteSpace
         <?> "header"
 
     let private effectheader =
-        skipCharsTillString "Effect Documentation:" true 2000 .>> SharedParsers.ws
+        skipCharsTillString "Effect Documentation:" true 2000 .>> SharedParsers.whiteSpace
         <?> "header"
 
     let private supportedscopes =
         pstring "Supported Scopes: "
         >>. sepBy (manyChars (noneOf ("," + "\r\n"))) (pstring ",")
         .>> newline
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
         <?> "scopes"
 
     let private supportedtargets =
         pstring "Supported Targets: "
         >>. sepBy (manyChars (noneOf ("," + "\r\n"))) (pstring ",")
         .>> newline
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
         <?> "targets"
 
     let private traits =
-        pstring "Traits: " >>. restOfLine false .>> SharedParsers.ws <?> "traits"
+        pstring "Traits: " >>. restOfLine false .>> SharedParsers.whiteSpace <?> "traits"
 
     let private tname =
-        (many1Chars idChar) .>> SharedParsers.ws .>> pchar '-' .>> SharedParsers.ws
+        (many1Chars idChar) .>> SharedParsers.whiteSpace .>> pchar '-' .>> SharedParsers.whiteSpace
         <?> "name"
 
     let private endOfDesc =
@@ -187,7 +187,7 @@ module JominiParser =
              <|> pstring "Traits:")
 
     let private desc =
-        (many1CharsTill anyChar (followedBy endOfDesc)) .>> SharedParsers.ws <?> "desc"
+        (many1CharsTill anyChar (followedBy endOfDesc)) .>> SharedParsers.whiteSpace <?> "desc"
 
     let private trigger =
         pipe5 tname desc (opt traits) (opt supportedscopes) (opt supportedtargets) (fun n d tr s t ->
@@ -199,11 +199,11 @@ module JominiParser =
               targets = t |> Option.defaultValue [] })
 
     let private triggerFile =
-        SharedParsers.ws >>. triggerheader >>. many1 (attempt (spacer >>. trigger))
+        SharedParsers.whiteSpace >>. triggerheader >>. many1 (attempt (spacer >>. trigger))
         .>> eof
 
     let private effectFile =
-        SharedParsers.ws >>. effectheader >>. many1 (attempt (spacer >>. trigger))
+        SharedParsers.whiteSpace >>. effectheader >>. many1 (attempt (spacer >>. trigger))
         .>> eof
 
     let parseTriggerFile filepath =
@@ -310,27 +310,27 @@ module DataTypeParser =
     let private idChar = letter <|> digit <|> anyOf [ '_'; '['; ']'; ':' ]
 
     let private line =
-        many1Chars idChar .>> ws .>> skipString "->" .>> ws .>>. many1Chars idChar
-        .>> ws
+        many1Chars idChar .>> whiteSpace .>> skipString "->" .>> whiteSpace .>>. many1Chars idChar
+        .>> whiteSpace
 
     let private promotes =
         pstring "Global Promotes ="
-        >>. ws
-        >>. between (skipChar '{' .>> ws) (skipChar '}' .>> ws) (many line)
+        >>. whiteSpace
+        >>. between (skipChar '{' .>> whiteSpace) (skipChar '}' .>> whiteSpace) (many line)
 
     let private functions =
         pstring "Global Functions ="
-        >>. ws
-        >>. between (skipChar '{' .>> ws) (skipChar '}' .>> ws) (many line)
+        >>. whiteSpace
+        >>. between (skipChar '{' .>> whiteSpace) (skipChar '}' .>> whiteSpace) (many line)
 
     let private dataType =
-        many1Chars idChar .>> ws
-        .>>. (between (skipString "= {" .>> ws) (skipChar '}' .>> ws) (many line))
+        many1Chars idChar .>> whiteSpace
+        .>>. (between (skipString "= {" .>> whiteSpace) (skipChar '}' .>> whiteSpace) (many line))
 
     let private types =
         pstring "Types ="
-        >>. ws
-        >>. between (skipChar '{' .>> ws) (skipChar '}' .>> ws) (many dataType)
+        >>. whiteSpace
+        >>. between (skipChar '{' .>> whiteSpace) (skipChar '}' .>> whiteSpace) (many dataType)
 
     let private dataTypeDump =
         promotes .>>. functions .>>. types .>> eof
@@ -374,31 +374,31 @@ module StellarisModifierParser =
     let private isvaluechar = SharedParsers.isValueChar
 
     let private str s =
-        pstring s .>> SharedParsers.ws <?> ("string " + s)
+        pstring s .>> SharedParsers.whiteSpace <?> ("string " + s)
 
     let private pre = skipCharsTillString "Static Modifier #" true 100
-    let private num = pre >>. pint64 .>> SharedParsers.ws |>> int
+    let private num = pre >>. pint64 .>> SharedParsers.whiteSpace |>> int
 
     let private tag =
-        skipString "tag = " >>. many1Satisfy isvaluechar .>> SharedParsers.ws
+        skipString "tag = " >>. many1Satisfy isvaluechar .>> SharedParsers.whiteSpace
 
     let private name = str "name = " >>. restOfLine true //manyCharsTill valuechar newline .>> ws
 
     let private modifierHeader =
         skipCharsTillString "Printing Modifier Definitions:" true 20000000
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
         <?> "modifier header"
 
     let private mtag =
         skipCharsTillString "- " true 500
         >>. many1CharsTill (satisfy isvaluechar) (pchar ',')
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
 
     let private categories =
         skipString "Category: "
         >>. sepBy (manyChars (noneOf ("," + "\r\n"))) (pstring ", ")
         .>> newline
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
 
     let private modifier =
         pipe2 mtag categories (fun t c -> {| tag = t; categories = c |})
@@ -406,7 +406,7 @@ module StellarisModifierParser =
     //    let private footer = many1Chars anyChar
 
     let private logFile =
-        SharedParsers.ws >>. modifierHeader >>. many1 (attempt modifier) .>> eof
+        SharedParsers.whiteSpace >>. modifierHeader >>. many1 (attempt modifier) .>> eof
 
 
     let toDocEffect<'a when 'a: comparison> effectType parseScope (x: RawEffect) = DocEffect(x, effectType, parseScope)

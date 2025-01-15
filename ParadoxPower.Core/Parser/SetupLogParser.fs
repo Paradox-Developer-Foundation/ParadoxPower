@@ -11,18 +11,18 @@ module SetupLogParser =
     let private isvaluechar = SharedParsers.isValueChar
 
     let private str s =
-        pstring s .>> SharedParsers.ws <?> ("string " + s)
+        pstring s .>> SharedParsers.whiteSpace <?> ("string " + s)
 
     let private header =
         skipCharsTillString "Initializing Database: CStaticModifierDatabase" true 20000000
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
         <?> "header"
 
     let private pre = skipCharsTillString "Static Modifier #" true 100
-    let private num = pre >>. pint64 .>> SharedParsers.ws |>> int
+    let private num = pre >>. pint64 .>> SharedParsers.whiteSpace |>> int
 
     let private tag =
-        skipString "tag = " >>. many1Satisfy isvaluechar .>> SharedParsers.ws
+        skipString "tag = " >>. many1Satisfy isvaluechar .>> SharedParsers.whiteSpace
 
     let private name = str "name = " >>. restOfLine true //manyCharsTill valuechar newline .>> ws
 
@@ -31,13 +31,13 @@ module SetupLogParser =
 
     let private modifierHeader =
         skipCharsTillString "Printing Modifier Definitions" true 20000000
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
         <?> "modifier header"
 
     let private mtag =
         skipCharsTillString "Tag: " true 500
         >>. many1CharsTill (satisfy isvaluechar) (pchar ',')
-        .>> SharedParsers.ws
+        .>> SharedParsers.whiteSpace
 
     let private cat = skipString "Categories: " >>. pint64 |>> int
     let private modifier = pipe2 mtag cat (fun t c -> { tag = t; category = c })
@@ -45,7 +45,7 @@ module SetupLogParser =
     let private footer = many1Chars anyChar
 
     let private logFile =
-        SharedParsers.ws >>. header >>. many1 (attempt staticModifier)
+        SharedParsers.whiteSpace >>. header >>. many1 (attempt staticModifier)
         .>> modifierHeader
         .>>. many1 (attempt modifier)
         .>> footer

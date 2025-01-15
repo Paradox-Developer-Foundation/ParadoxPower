@@ -123,16 +123,16 @@ module internal SharedParsers =
 
     // Utility parsers
     // =======
-    let ws = spaces <?> Resources.Parse_Whitespace
-    let str s = pstring s .>> ws <?> $"{Resources.Parse_String} {s}"
+    let whiteSpace = spaces <?> Resources.Parse_Whitespace
+    let str s = pstring s .>> whiteSpace <?> $"{Resources.Parse_String} {s}"
 
     let strSkip s =
-        skipString s .>> ws <?> ("skip string " + s)
+        skipString s .>> whiteSpace <?> ("skip string " + s)
 
-    let ch c = pchar c .>> ws <?> ("char " + string c)
+    let ch c = pchar c .>> whiteSpace <?> ("char " + string c)
 
     let chSkip c =
-        skipChar c .>> ws <?> ("skip char " + string c)
+        skipChar c .>> whiteSpace <?> ("skip char " + string c)
     let clause inner =
         betweenL (chSkip '{' <?> Resources.Parse_OpeningBrace) (skipChar '}' <?> Resources.Parse_ClosingBrace) inner Resources.Parse_Clause
 
@@ -162,26 +162,26 @@ module internal SharedParsers =
 
     let operator =
         choiceL [ oppLTE; oppGTE; oppNE; oppEE; oppLT; oppGT; oppE; oppQE ] Resources.Parse_Operator
-        .>> ws
+        .>> whiteSpace
 
     let operatorLookahead =
         choice [ chSkip '='; chSkip '>'; chSkip '<'; chSkip '!'; strSkip "?=" ]
         <?> $"{Resources.Parse_Operator} 1"
 
     let comment =
-        parseWithPosition (skipChar '#' >>. restOfLine true .>> ws |>> string)
+        parseWithPosition (skipChar '#' >>. restOfLine true .>> whiteSpace |>> string)
         <?> Resources.Parse_Comment
 
-    let key = (many1SatisfyL isIdChar "id character") .>> ws |>> Key <?> "id"
+    let key = (many1SatisfyL isIdChar "id character") .>> whiteSpace |>> Key <?> "id"
 
     let keyQ =
         between (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar))
-        .>> ws
+        .>> whiteSpace
         |>> (fun s -> "\"" + s + "\"")
         |>> Key
         <?> "quoted key"
 
-    let valueS =
+    let valueStr =
         (many1SatisfyL isValueChar "value character")
         |>> string
         |>> String
@@ -198,35 +198,16 @@ module internal SharedParsers =
     let valueBNo =
         skipString "no" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(false))
 
-    let valueI = pint64 .>> nextCharSatisfiesNot isValueChar |>> int |>> Int
-    let valueF = pfloat .>> nextCharSatisfiesNot isValueChar |>> decimal |>> Float
-
-    let hsv3 =
-        clause (
-            pipe3
-                ((parseWithPosition valueF .>> ws) .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (fun a b c -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
-        )
-
-    let hsv4 =
-        clause (
-            pipe4
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (fun a b c d -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c; Statement.Value d ])
-        )
+    let valueInt = pint64 .>> nextCharSatisfiesNot isValueChar |>> int |>> Int
+    let valueFloat = pfloat .>> nextCharSatisfiesNot isValueChar |>> decimal |>> Float
 
     let hsvI =
         clause (
             pipe4
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (parseWithPosition valueF .>> ws)
-                (opt (parseWithPosition valueF .>> ws))
+                (parseWithPosition valueFloat .>> whiteSpace)
+                (parseWithPosition valueFloat .>> whiteSpace)
+                (parseWithPosition valueFloat .>> whiteSpace)
+                (opt (parseWithPosition valueFloat .>> whiteSpace))
                 (fun a b c d ->
                     match (a, b, c, d) with
                     | a, b, c, Some d ->
@@ -234,16 +215,16 @@ module internal SharedParsers =
                     | a, b, c, None -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
         )
 
-    let hsv = strSkip "hsv" >>. opt (strSkip "360") >>. hsvI .>> ws
-    let hsvC = strSkip "HSV" >>. hsvI .>> ws
+    let hsv = strSkip "hsv" >>. opt (strSkip "360") >>. hsvI .>> whiteSpace
+    let hsvC = strSkip "HSV" >>. hsvI .>> whiteSpace
 
     let rgbI =
         clause (
             pipe4
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (parseWithPosition valueI .>> ws)
-                (opt (parseWithPosition valueI .>> ws))
+                (parseWithPosition valueInt .>> whiteSpace)
+                (parseWithPosition valueInt .>> whiteSpace)
+                (parseWithPosition valueInt .>> whiteSpace)
+                (opt (parseWithPosition valueInt .>> whiteSpace))
                 (fun a b c d ->
                     match (a, b, c, d) with
                     | a, b, c, Some d ->
@@ -251,8 +232,8 @@ module internal SharedParsers =
                     | a, b, c, None -> Clause [ Statement.Value a; Statement.Value b; Statement.Value c ])
         )
 
-    let rgb = strSkip "rgb" >>. rgbI .>> ws
-    let rgbC = strSkip "RGB" >>. rgbI .>> ws
+    let rgb = strSkip "rgb" >>. rgbI .>> whiteSpace
+    let rgbC = strSkip "RGB" >>. rgbI .>> whiteSpace
 
     let metaPrograming =
         pipe3 (pstring "@\\[") metaprogrammingCharSnippet (ch ']') (fun a b c -> (a + b + string c))
@@ -265,7 +246,7 @@ module internal SharedParsers =
     let (value: Parser<Value, unit>), valueimpl = createParserForwardedToRef ()
 
     let leafValue =
-        pipe3 getPosition (value .>> ws) getPosition (fun a b c -> (getRange a c, b))
+        pipe3 getPosition (value .>> whiteSpace) getPosition (fun a b c -> (getRange a c, b))
 
     let statement =
         comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))
@@ -281,10 +262,10 @@ module internal SharedParsers =
 
     let valueCustom: Parser<Value, unit> =
         let vcP = valueClause
-        let iP = attempt valueI
-        let fP = attempt valueF
-        let byP = attempt valueBYes <|> valueS
-        let bnP = attempt valueBNo <|> valueS
+        let iP = attempt valueInt
+        let fP = attempt valueFloat
+        let byP = attempt valueBYes <|> valueStr
+        let bnP = attempt valueBNo <|> valueStr
         let mpP = metaPrograming
 
         fun (stream: CharStream<_>) ->
@@ -298,7 +279,7 @@ module internal SharedParsers =
                     i
                 else
                     let f = (fP stream)
-                    if f.Status = Ok then f else valueS stream
+                    if f.Status = Ok then f else valueStr stream
             | _ ->
                 match stream.PeekString 3, stream.PeekString 2 with
                 | "rgb", _ -> printfn "rgb"; rgb stream;
@@ -308,19 +289,19 @@ module internal SharedParsers =
                 | "yes", _ -> byP stream
                 | _, "no" -> bnP stream
                 | "@\\[", _ -> mpP stream
-                | _ -> valueS stream
+                | _ -> valueStr stream
 
     valueimpl.Value <- valueCustom <?> "value"
 
     keyvalueimpl.Value
-        <- pipe5 getPosition (keyQ <|> key) operator value (getPosition .>> ws) (fun start id op value endp ->
+        <- pipe5 getPosition (keyQ <|> key) operator value (getPosition .>> whiteSpace) (fun start id op value endp ->
         KeyValue(PosKeyValue(getRange start endp, KeyValueItem(id, value, op))))
 
-    let alle = ws >>. many statement .>> eof |>> ParsedFile
+    let alle = whiteSpace >>. many statement .>> eof |>> ParsedFile
 
     let valueList =
         many1 ((comment |>> (fun (range, str) -> CommentStatement({Position=range; Comment=str}))) <|> (leafValue |>> Value))
         .>> eof
 
     let statementList = (many statement) .>> eof
-    let all = ws >>. ((attempt valueList) <|> statementList)
+    let all = whiteSpace >>. ((attempt valueList) <|> statementList)
