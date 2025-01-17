@@ -306,17 +306,6 @@ module internal SharedParsers =
         <|> keyValue
         <?> Resources.Parse_Statement
 
-    let valueBlock =
-        clause (
-            many1 (
-                (leafValue |>> Value)
-                <|> (comment
-                     |>> (fun (range, str) -> CommentStatement({ Position = range; Comment = str })))
-            )
-        )
-        |>> Clause
-        <?> "value clause"
-
     let valueClause = clause (many statement) |>> Clause
 
     let valueCustom: Parser<Value, unit> =
