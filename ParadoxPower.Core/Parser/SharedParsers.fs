@@ -252,6 +252,7 @@ module internal SharedParsers =
                             :: clause
                         )
                 | _ -> failwith "assert")
+        <?> typeName
 
     let hsv = hsvCore "hsv"
     let hsvC = hsvCore "HSV"
@@ -279,7 +280,6 @@ module internal SharedParsers =
                     :: clause
                 )
             | _ -> failwith "assert")
-        .>> whiteSpace
         <?> typeName
 
     let rgb = rgbCore "rgb"
