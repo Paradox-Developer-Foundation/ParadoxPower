@@ -112,7 +112,9 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
             and set v = this.Trivia <- v
 
 and [<Struct>] Child =
+    #if RELEASE
     internal
+    #endif
     | NodeChild of node: Node
     | LeafChild of leaf: Leaf
     | CommentChild of comment: Comment
