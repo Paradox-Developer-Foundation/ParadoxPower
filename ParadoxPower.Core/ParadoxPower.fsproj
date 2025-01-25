@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
-    <Version>0.8.3-beta</Version>
+    <Version>0.8.4-beta</Version>
     <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <PackageReference Include="FParsec" Version="2.0.0-beta2" />
-    <PackageReference Include="FSharp.Data" Version="6.4.0" />
+    <PackageReference Include="FSharp.Data" Version="6.4.1" />
   </ItemGroup>
 
   <ItemGroup>

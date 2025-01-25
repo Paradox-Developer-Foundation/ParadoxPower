@@ -1,5 +1,7 @@
 ﻿using ParadoxPower.CSharpExtensions;
+using ParadoxPower.Parser;
 using ParadoxPower.Process;
+using Shouldly;
 
 namespace ParadoxPower.UnitTest.Extensions;
 
@@ -34,15 +36,43 @@ public class ExtensionsTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(node1, Is.Not.Null);
-            Assert.That(node2, Is.Not.Null);
-            Assert.That(node3, Is.Null);
+            node1.ShouldNotBeNull();
+            node2.ShouldNotBeNull();
+            node3.ShouldBeNull();
         });
-        
+
         Assert.Multiple(() =>
         {
-            Assert.That(node1.Key, Is.EqualTo("node1"));
-            Assert.That(node2.Key, Is.EqualTo("node2"));
+            node1?.Key.ShouldBe("node1");
+            node2?.Key.ShouldBe("node2");
         });
+    }
+
+    [Test]
+    public void TryGetBoolValueTest()
+    {
+        var value = Types.Value.NewBool(false);
+
+        value.TryGetBool(out bool boolValue).ShouldBeTrue();
+        boolValue.ShouldBeFalse();
+        value.TryGetInt(out _).ShouldBeFalse();
+        value.TryGetClause(out _).ShouldBeFalse();
+        value.TryGetDecimal(out _).ShouldBeFalse();
+        value.TryGetString(out _).ShouldBeFalse();
+        value.TryGetQString(out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public void TryGetIntValueTest()
+    {
+        var value = Types.Value.NewInt(11);
+
+        value.TryGetInt(out int intValue).ShouldBeTrue();
+        intValue.ShouldBe(11);
+        value.TryGetBool(out _).ShouldBeFalse();
+        value.TryGetClause(out _).ShouldBeFalse();
+        value.TryGetDecimal(out _).ShouldBeFalse();
+        value.TryGetString(out _).ShouldBeFalse();
+        value.TryGetQString(out _).ShouldBeFalse();
     }
 }

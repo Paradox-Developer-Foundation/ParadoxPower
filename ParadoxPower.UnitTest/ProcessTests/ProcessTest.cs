@@ -24,23 +24,12 @@ public class ProcessTest
     {
         _root = ParserHelper.Parse(Text);
     }
-
-    [Test]
-    public void SetValueTest()
-    {
-        // Assert.That(_root.TryGetLeaf("key1").Value.Value.ToRawString(), Is.EqualTo("value1"));
-        //
-        // const string newValue = "new value";
-        // _root.SetLeafValue("key1", newValue);
-        //
-        // Assert.That(_root.TryGetLeaf("key1").Value.Value.ToRawString(), Is.EqualTo(newValue));
-        // CKPrinter.PrettyPrintFile()
-    }
+    
 
     [Test]
     public void LeavesTest()
     {
-        Assert.That(_root.Leaves.Count(), Is.EqualTo(1));
+        Assert.That(_root.Leaves, Has.Count.EqualTo(1));
     }
 
     [Test]

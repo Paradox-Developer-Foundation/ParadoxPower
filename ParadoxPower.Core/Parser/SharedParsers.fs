@@ -299,10 +299,13 @@ module internal SharedParsers =
     let leafValue =
         pipe3 getPosition (value .>> whiteSpace) getPosition (fun a b c -> (getRange a c, b))
 
+    let leafValues =
+        pipe3 getPosition value getPosition (fun a b c -> (getRange a c, b))
+
     let statement =
         comment
         |>> (fun (range, str) -> CommentStatement({ Position = range; Comment = str }))
-        <|> (attempt (leafValue .>> notFollowedBy operatorLookahead |>> Value))
+        <|> (attempt (leafValues .>> whiteSpace .>> notFollowedBy operatorLookahead |>> Value))
         <|> keyValue
         <?> Resources.Parse_Statement
 
