@@ -107,7 +107,6 @@ public class ProcessTest
         {
             Assert.That(node.Key, Is.EqualTo("key1"));
             Assert.That(node.AllArray, Is.Empty);
-            Assert.That(node.Children, Is.Empty);
             Assert.That(node.Leaves, Is.Empty);
             Assert.That(node.Comments, Is.Empty);
             Assert.That(node.Position, Is.EqualTo(Position.Range.Zero));

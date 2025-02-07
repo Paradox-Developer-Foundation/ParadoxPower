@@ -64,7 +64,7 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
     member this.ToRaw =
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key(this.Key), this.Value, this.Operator)))
 
-    override this.ToString()= $"{this.Key}={this.ValueText}"
+    override this.ToString() = $"{this.Key}={this.ValueText}"
 
     new(key: string, value: Value, pos: Range, op: Operator) =
         { Key = key
@@ -377,40 +377,48 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
             all <- (value |> List.toArray)
             resetLeaves ()
 
-    member this.Nodes =
-        all
-        |> Seq.choose (function
-            | NodeChild n -> Some n
-            | _ -> None)
-
-    member this.Children = this.Nodes |> List.ofSeq
+    member this.Nodes: Node seq =
+        seq {
+            for child in all do
+                match child with
+                | NodeChild n -> yield n
+                | _ -> ()
+        }
 
     member this.Leaves: Leaf IReadOnlyCollection = this.GetLeavesArray()
 
-    member this.Comments =
-        all
-        |> Seq.choose (function
-            | CommentChild c -> Some c
-            | _ -> None)
+    member this.Comments: Comment seq =
+        seq {
+            for child in all do
+                match child with
+                | CommentChild n -> yield n
+                | _ -> ()
+        }
 
-    member this.LeafValues =
-        all
-        |> Seq.choose (function
-            | LeafValueChild lv -> Some lv
-            | _ -> None)
+    member this.LeafValues: LeafValue seq =
+        seq {
+            for child in all do
+                match child with
+                | LeafValueChild n -> yield n
+                | _ -> ()
+        }
 
-    member this.ValueClauses =
-        all
-        |> Seq.choose (function
-            | ValueClauseChild vc -> Some vc
-            | _ -> None)
+    member this.ValueClauses: ValueClause seq =
+        seq {
+            for child in all do
+                match child with
+                | ValueClauseChild n -> yield n
+                | _ -> ()
+        }
 
-    member this.Clauses =
-        all
-        |> Seq.choose (function
-            | ValueClauseChild vc -> Some(vc :> IClause)
-            | NodeChild n -> Some(n :> IClause)
-            | _ -> None)
+    member this.Clauses: IClause seq =
+        seq {
+            for child in all do
+                match child with
+                | ValueClauseChild vc -> yield vc :> IClause
+                | NodeChild n -> yield n :> IClause
+                | _ -> ()
+        }
 
     member this.Has key = all |> (Array.exists (bothFind key))
 
