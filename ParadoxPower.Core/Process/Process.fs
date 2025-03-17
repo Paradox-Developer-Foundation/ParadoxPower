@@ -619,18 +619,18 @@ module ProcessCore =
             | Some(Value _), Some(KeyValue(PosKeyValue(_, KeyValueItem(Key _, Clause _, _)))), Value(_, Clause _)
             | _, Some(Value(_, Clause _)), _ -> backone, Some next, (processNodeInner context next) :: acc
             | Some(Value(_, v2)), Some(Value(_, v1)), Value(pos, Clause sl) ->
-                None, None, (lookupVC pos context sl [| v2; v1 |]) :: (acc |> List.skip 2)
+                None, None, (lookupValueClause pos context sl [| v2; v1 |]) :: (acc |> List.skip 2)
             | Some(Value(_, v2)), Some(KeyValue(PosKeyValue(_, KeyValueItem(Key(k), v1, _)))), Value(pos, Clause sl) ->
-                let node: Node = lookupN k pos context sl
+                let node: Node = lookupNode k pos context sl
                 None, None, (NodeChild node) :: (acc |> List.skip 2)
             | _, Some(Value(pos, v2)), KeyValue(PosKeyValue(pos2, KeyValueItem(Key(k), Clause sl, _))) when
                 pos.StartLine = pos2.StartLine
                 ->
-                let node = lookupN k pos2 context sl
+                let node = lookupNode k pos2 context sl
                 None, None, (NodeChild node) :: (acc |> List.skip 1)
             | _ -> backone, Some next, (processNodeInner context next) :: acc
 
-        and lookupN =
+        and lookupNode =
             (fun (key: string) (pos: Range) (context: LookupContext) (sl: Statement list) ->
                 let n = Node(key, pos)
 
@@ -642,7 +642,7 @@ module ProcessCore =
                 n.All <- children
                 n)
 
-        and lookupVC =
+        and lookupValueClause =
             (fun (pos: Range) (context: LookupContext) (sl: Statement list) keys ->
                 let vc = ValueClause(keys, pos)
 
@@ -657,15 +657,15 @@ module ProcessCore =
         and processNodeInner (c: LookupContext) statement =
             //log "%A" node.Key
             match statement with
-            | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupN k pos c sl)
+            | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupNode k pos c sl)
             | KeyValue(PosKeyValue(pos, kv)) -> LeafChild(Leaf(kv, pos))
             | CommentStatement({ Position = r; Comment = c }) -> CommentChild({ Position = r; Comment = c })
-            | Value(pos, Value.Clause sl) -> lookupVC pos c sl [||]
+            | Value(pos, Value.Clause sl) -> lookupValueClause pos c sl [||]
             | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
 
         member _.ProcessNode() =
             (fun key pos sl ->
-                lookupN
+                lookupNode
                     key
                     pos
                     { complete = false
@@ -677,7 +677,7 @@ module ProcessCore =
 
         member _.ProcessNode(entityType: EntityType) =
             (fun key pos sl ->
-                lookupN
+                lookupNode
                     key
                     pos
                     { complete = false
