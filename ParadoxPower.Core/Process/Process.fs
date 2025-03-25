@@ -111,7 +111,12 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
             with get () = this.Trivia
             and set v = this.Trivia <- v
 
-and [<Struct>] Child =
+and
+    [<Struct>]
+#if NET5_0_OR_GREATER
+    [<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
+    Child =
     #if RELEASE
     internal
     #endif

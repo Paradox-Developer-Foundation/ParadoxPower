@@ -33,6 +33,9 @@ let lineColumnMask = mask32 columnBitCount lineBitCount
 let inline (lsr) (x: int) (y: int) = int32 (uint32 x >>> y)
 
 [<Struct; CustomEquality; NoComparison>]
+#if NET5_0_OR_GREATER
+[<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
 [<System.Diagnostics.DebuggerDisplay("{Line},{Column}")>]
 type pos(code: int32) =
     new(l, c) =
@@ -188,6 +191,9 @@ let fileOfFileIndex n = fileIndexTable.IndexToFile(n)
 let mkPos l c = pos (l, c)
 
 [<Struct; CustomEquality; NoComparison>]
+#if NET5_0_OR_GREATER
+[<System.Runtime.CompilerServices.IsReadOnly>]
+#endif
 #if DEBUG
 [<System.Diagnostics.DebuggerDisplay("({StartLine},{StartColumn}-{EndLine},{EndColumn}) {FileName} IsSynthetic={IsSynthetic} -> {DebugCode}")>]
 #else

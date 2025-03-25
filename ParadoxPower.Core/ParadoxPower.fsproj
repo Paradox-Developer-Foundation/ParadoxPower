@@ -4,7 +4,8 @@
     <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>ParadoxPower</Title>
-    <Version>0.8.5-beta</Version>
+    <Version>0.8.6-beta</Version>
+    <Nullable>enable</Nullable>
     <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
