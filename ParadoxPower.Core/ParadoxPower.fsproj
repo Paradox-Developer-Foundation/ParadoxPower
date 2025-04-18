@@ -37,7 +37,6 @@
 
   <ItemGroup>
     <PackageReference Include="FParsec" Version="2.0.0-beta2" />
-    <PackageReference Include="FSharp.Data" Version="6.4.1" />
   </ItemGroup>
 
   <ItemGroup>
