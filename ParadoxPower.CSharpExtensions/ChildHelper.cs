@@ -52,7 +52,7 @@ public static class ChildHelper
 
     public static Child Node(string key, Child[] children)
     {
-        var node = new Node(key) { all = children };
+        var node = new Node(key) { AllArray = children };
         return Child.NewNodeChild(node);
     }
 
