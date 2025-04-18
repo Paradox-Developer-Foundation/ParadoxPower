@@ -1,4 +1,6 @@
-﻿using ParadoxPower.Parser;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ParadoxPower.Parser;
 using ParadoxPower.Process;
 
 namespace ParadoxPower.CSharpExtensions;
@@ -41,6 +43,17 @@ public static class ChildHelper
     public static Child Node(string key)
     {
         return Child.NewNodeChild(new Node(key));
+    }
+
+    public static Child Node(string key, IEnumerable<Child> children)
+    {
+        return Node(key, children.ToArray());
+    }
+
+    public static Child Node(string key, Child[] children)
+    {
+        var node = new Node(key) { all = children };
+        return Child.NewNodeChild(node);
     }
 
     public static Child LeafValue(string value)
