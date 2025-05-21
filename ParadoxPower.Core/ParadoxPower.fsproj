@@ -19,7 +19,6 @@
     <Compile Include="Process\Comment.fs" />
       <Compile Include="Utilities/Utilities.fs" />
       <Compile Include="Common/Constants.fs" />
-      <Compile Include="Common/HOI4Constants.fs" />
       <Compile Include="Parser/Types.fs" />
       <Compile Include="Parser/SharedParsers.fs" />
       <Compile Include="Parser/CKParser.fs" />

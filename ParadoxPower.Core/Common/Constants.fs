@@ -98,206 +98,6 @@ type EntityType =
         | GfxAsset = 90
         | Decisions = 91
 
-type Game =
-    | CK2 = 0
-    | HOI4 = 1
-    | EU4 = 2
-    | STL = 3
-    | VIC2 = 4
-    | IR = 5
-    | CK3 = 6
-    | Custom = 99
-
-type CK2Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Russian = 4
-    | Default = 5
-
-type STLLang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Russian = 4
-    | Polish = 5
-    | Braz_Por = 6
-    | Default = 7
-    | Chinese = 8
-    | Japanese = 9
-    | Korean = 10
-
-type HOI4Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Russian = 4
-    | Polish = 5
-    | Braz_Por = 6
-    | Default = 7 //Default doesnt' exist!
-
-type EU4Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Default = 4
-
-type IRLang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Chinese = 4
-    | Russian = 5
-
-type VIC2Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-
-type CK3Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Chinese = 4
-    | Russian = 5
-    | Korean = 6
-
-type VIC3Lang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Chinese = 4
-    | Russian = 5
-    | Korean = 6
-    | Braz_Por = 7
-    | Japanese = 8
-    | Polish = 9
-    | Turkish = 10
-
-type CustomLang =
-    | English = 0
-    | French = 1
-    | German = 2
-    | Spanish = 3
-    | Russian = 4
-    | Polish = 5
-    | Braz_Por = 6
-    | Chinese = 7
-    | Default = 8
-
-type Lang =
-    | CK2 of CK2Lang
-    | STL of STLLang
-    | HOI4 of HOI4Lang
-    | EU4 of EU4Lang
-    | IR of IRLang
-    | VIC2 of VIC2Lang
-    | CK3 of CK3Lang
-    | VIC3 of VIC3Lang
-    | Custom of CustomLang
-
-    override x.ToString() =
-        x
-        |> function
-            | CK2 c -> c.ToString()
-            | STL s -> s.ToString()
-            | HOI4 s -> s.ToString()
-            | EU4 s -> s.ToString()
-            | IR s -> s.ToString()
-            | VIC2 s -> s.ToString()
-            | CK3 s -> s.ToString()
-            | VIC3 s -> s.ToString()
-            | Custom s -> s.ToString()
-
-module LangHelpers =
-    let allCK2Langs =
-        [ CK2 CK2Lang.English
-          CK2 CK2Lang.French
-          CK2 CK2Lang.German
-          CK2 CK2Lang.Spanish
-          CK2 CK2Lang.Russian ]
-
-    let allSTLLangs =
-        [ STL STLLang.English
-          STL STLLang.French
-          STL STLLang.German
-          STL STLLang.Spanish
-          STL STLLang.Russian
-          STL STLLang.Polish
-          STL STLLang.Braz_Por
-          STL STLLang.Chinese
-          STL STLLang.Japanese
-          STL STLLang.Korean ]
-
-    let allHOI4Langs =
-        [ HOI4 HOI4Lang.English
-          HOI4 HOI4Lang.French
-          HOI4 HOI4Lang.German
-          HOI4 HOI4Lang.Spanish
-          HOI4 HOI4Lang.Russian
-          HOI4 HOI4Lang.Polish
-          HOI4 HOI4Lang.Braz_Por ]
-
-    let allEU4Langs =
-        [ EU4 EU4Lang.English
-          EU4 EU4Lang.French
-          EU4 EU4Lang.German
-          EU4 EU4Lang.Spanish ]
-
-    let allIRLangs =
-        [ IR IRLang.English
-          IR IRLang.French
-          IR IRLang.German
-          IR IRLang.Spanish
-          IR IRLang.Russian
-          IR IRLang.Chinese ]
-
-    let allVIC2Langs =
-        [ VIC2 VIC2Lang.English
-          VIC2 VIC2Lang.French
-          VIC2 VIC2Lang.German
-          VIC2 VIC2Lang.Spanish ]
-
-    let allCK3Langs =
-        [ CK3 CK3Lang.English
-          CK3 CK3Lang.French
-          CK3 CK3Lang.German
-          CK3 CK3Lang.Spanish
-          CK3 CK3Lang.Chinese
-          CK3 CK3Lang.Russian
-          CK3 CK3Lang.Korean ]
-
-    let allVIC3Langs =
-        [ VIC3 VIC3Lang.English
-          VIC3 VIC3Lang.Chinese
-          VIC3 VIC3Lang.French
-          VIC3 VIC3Lang.German
-          VIC3 VIC3Lang.Japanese
-          VIC3 VIC3Lang.Korean
-          VIC3 VIC3Lang.Polish
-          VIC3 VIC3Lang.Russian
-          VIC3 VIC3Lang.Spanish
-          VIC3 VIC3Lang.Turkish
-          VIC3 VIC3Lang.Braz_Por ]
-
-    let allCustomLangs =
-        [ Custom CustomLang.English
-          Custom CustomLang.French
-          Custom CustomLang.German
-          Custom CustomLang.Spanish
-          Custom CustomLang.Russian
-          Custom CustomLang.Polish
-          Custom CustomLang.Braz_Por
-          Custom CustomLang.Chinese ]
-
 type RawEffect =
     { name: string
       desc: string
@@ -305,12 +105,6 @@ type RawEffect =
       scopes: string list
       targets: string list
       traits: string option }
-
-type Severity =
-    | Error = 1
-    | Warning = 2
-    | Information = 3
-    | Hint = 4
 
 [<AutoOpen>]
 module rec NewScope =
@@ -617,19 +411,10 @@ module rec NewScope =
           explicitLocalisation: (string * string * bool) list
           subtypes: string list }
 
-type ModifierSource =
-    | Rules
-    | CodeGen
-    | TypeDef of name: string * typeDef: string
-
 type ActualModifier =
     { tag: string
       // source: ModifierSource
       category: ModifierCategory }
-
-type StaticModifier =
-    { tag: string
-      categories: ModifierCategory list }
 
 type EffectType =
     | Effect
@@ -861,33 +646,3 @@ type ScopedEffect
             false,
             None
         )
-
-
-type TitleType =
-    | Empire
-    | Kingdom
-    | Duchy_Hired
-    | Duchy_Normal
-    | County
-    | Barony
-
-type DataLinkType =
-    | Scope
-    | Value
-    | Both
-
-
-
-
-type EventTargetDataLink =
-    { name: string
-      inputScopes: Scope list
-      outputScope: Scope
-      description: string
-      dataPrefix: string option
-      sourceRuleType: string
-      dataLinkType: DataLinkType }
-
-type EventTargetLink =
-    | SimpleLink of ScopedEffect
-    | DataLink of EventTargetDataLink
