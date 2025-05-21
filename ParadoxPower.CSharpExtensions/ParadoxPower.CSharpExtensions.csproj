@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
         <LangVersion>13</LangVersion>
         <Nullable>enable</Nullable>
-        <Version>0.5.1-beta</Version>
+        <Version>0.6.0-beta</Version>
         <PackageProjectUrl>https://github.com/textGamex/ParadoxPower</PackageProjectUrl>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -22,6 +22,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.5" />
     </ItemGroup>
 
 </Project>
