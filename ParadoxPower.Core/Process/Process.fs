@@ -692,6 +692,4 @@ module ProcessCore =
                       entityType = entityType }
                     sl)
 
-    let processNodeBasic = BaseProcess().ProcessNode()
-
     let simpleProcess = BaseProcess()
