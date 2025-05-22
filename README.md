@@ -104,7 +104,7 @@ var color = "color = rgb { 255 1 1 }";
 
 ## Used Project
 
-- [VModer - HOI4 vscode extension]([textGamex/VModer: HOI4 vscode extension](https://github.com/textGamex/VModer))
+- [VModer: HOI4 vscode extension](https://github.com/textGamex/VModer)
 
 ## Supported Games
 
