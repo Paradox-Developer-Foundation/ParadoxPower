@@ -27,10 +27,10 @@ public class TextParser
     /// <param name="filePath"></param>
     /// <exception cref="FileNotFoundException">如果文件不存在</exception>
     /// <exception cref="IOException"></exception>
-    protected TextParser(string filePath)
+    public TextParser(string filePath)
         : this(filePath, File.ReadAllText(filePath)) { }
 
-    protected TextParser(string filePath, string fileText)
+    public TextParser(string filePath, string fileText)
     {
         FilePath = File.Exists(filePath)
             ? filePath
