@@ -32,9 +32,8 @@ public class TextParser
 
     public TextParser(string filePath, string fileText)
     {
-        FilePath = File.Exists(filePath)
-            ? filePath
-            : throw new FileNotFoundException($"找不到文件: {filePath}", filePath);
+        FilePath = filePath;
+
         string fileName = Path.GetFileName(filePath);
         var result = Parsers.ParseScriptFile(fileName, fileText);
         IsSuccess = result.IsSuccess;

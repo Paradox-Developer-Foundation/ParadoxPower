@@ -1,7 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.FSharp.Collections;
 using ParadoxPower.Parser;
 using ParadoxPower.Process;
+using ParadoxPower.Utilities;
 
 namespace ParadoxPower.CSharpExtensions;
 
@@ -133,7 +137,7 @@ public static class Extensions
         node = currentNode;
         return true;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Child"/> 中的 <see cref="Leaf"/>
     /// </summary>
@@ -151,7 +155,7 @@ public static class Extensions
         leaf = null;
         return false;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Child"/> 中的 <see cref="Node"/>
     /// </summary>
@@ -169,14 +173,17 @@ public static class Extensions
         node = null;
         return false;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Child"/> 中的 <see cref="LeafValue"/>
     /// </summary>
     /// <param name="child"></param>
     /// <param name="leafValue"></param>
     /// <returns>当 <see cref="Child"/> 为 <see cref="LeafValue"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
-    public static bool TryGetLeafValue(this Child child, [NotNullWhen(true)] out LeafValue? leafValue)
+    public static bool TryGetLeafValue(
+        this Child child,
+        [NotNullWhen(true)] out LeafValue? leafValue
+    )
     {
         if (child.IsLeafValueChild)
         {
@@ -187,7 +194,7 @@ public static class Extensions
         leafValue = null;
         return false;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Child"/> 中的 <see cref="Comment"/>
     /// </summary>
@@ -205,14 +212,17 @@ public static class Extensions
         comment = null;
         return false;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Child"/> 中的 <see cref="ValueClause"/>
     /// </summary>
     /// <param name="child"></param>
     /// <param name="valueClause"></param>
     /// <returns>当 <see cref="Child"/> 为 <see cref="ValueClause"/> 时返回<c>true</c>, 反之返回<c>false</c></returns>
-    public static bool TryGetValueClause(this Child child, [NotNullWhen(true)] out ValueClause? valueClause)
+    public static bool TryGetValueClause(
+        this Child child,
+        [NotNullWhen(true)] out ValueClause? valueClause
+    )
     {
         if (child.IsValueClauseChild)
         {
@@ -222,5 +232,69 @@ public static class Extensions
 
         valueClause = null;
         return false;
+    }
+
+    /// <summary>
+    /// 将节点转化为脚本字符串, 应该在根节点上调用
+    /// </summary>
+    /// <param name="rootNode"></param>
+    /// <returns></returns>
+    public static string ToScript(this Node rootNode)
+    {
+        return CKPrinter.PrettyPrintStatements(
+            rootNode.AllArray.Select(child => GetRawStatement(child, string.Empty))
+        );
+    }
+
+    private static Types.Statement GetRawStatement(Child child, string key)
+    {
+        if (child.TryGetNode(out var node))
+        {
+            return node.ToRaw;
+        }
+
+        if (child.TryGetLeaf(out var leaf))
+        {
+            return leaf.ToRaw;
+        }
+
+        if (child.TryGetLeafValue(out var value))
+        {
+            return value.ToRaw;
+        }
+
+        if (child.TryGetComment(out var comment))
+        {
+            return Types.Statement.NewCommentStatement(comment);
+        }
+
+        if (child.TryGetValueClause(out var clause))
+        {
+            var keys = new Types.Statement[clause.Keys.Length + 1];
+            for (int i = 0; i < keys.Length; i++)
+            {
+                keys[i] = Types.Statement.NewValue(
+                    Position.Range.Zero,
+                    Types.Value.NewString(clause.Keys[i])
+                );
+            }
+            keys[^1] = Types.Statement.NewValue(
+                clause.Position,
+                Types.Value.NewClause(clause.ToRaw)
+            );
+
+            return Types.Statement.NewKeyValue(
+                Types.PosKeyValue.NewPosKeyValue(
+                    clause.Position,
+                    Types.KeyValueItem.NewKeyValueItem(
+                        Types.Key.NewKey(key),
+                        Types.Value.NewClause(ListModule.OfArray(keys)),
+                        Types.Operator.Equals
+                    )
+                )
+            );
+        }
+
+        throw new InvalidEnumArgumentException(nameof(child));
     }
 }
