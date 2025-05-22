@@ -579,21 +579,6 @@ module ProcessCore =
 
     let processNodeSimple _ = processNode id
 
-    type NodeTypeMap =
-        string * Range * LookupContext
-            -> (LookupContext -> (Statement -> Child) -> string -> Range -> Statement list -> Node) *
-            string *
-            (LookupContext -> LookupContext)
-
-    let updateContext f n key context =
-        match n with
-        | "" -> f { context with previous = key }
-        | _ ->
-            f
-                { context with
-                    parents = n :: context.parents
-                    previous = key }
-
     type BaseProcess() =
         let rec nodeWindowFun context (backtwo: Statement option, backone: Statement option, acc) (next: Statement) =
             //eprintfn "%A %A %A" backtwo backone next
@@ -644,7 +629,7 @@ module ProcessCore =
                 ValueClauseChild vc)
 
         and processNodeInner (c: LookupContext) statement =
-            //log "%A" node.Key
+            // printfn "%s" (System.String.Join(", ", c.parents))
             match statement with
             | KeyValue(PosKeyValue(pos, KeyValueItem(Key(k), Clause(sl), _))) -> NodeChild(lookupNode k pos c sl)
             | KeyValue(PosKeyValue(pos, kv)) -> LeafChild(Leaf(kv, pos))
