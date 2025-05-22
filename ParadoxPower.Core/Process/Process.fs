@@ -33,12 +33,9 @@ module List =
         | Some ls -> ls
         | None -> add :: xs
 
-type Trivia = { originalSource: Range option }
-
 type IKeyPos =
     abstract member Key: string
     abstract member Position: Range
-    abstract member Trivia: Trivia option with get, set
 
 type IClause =
     inherit IKeyPos
@@ -56,8 +53,8 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
     val mutable Value: Value
     val mutable Key: string
     val mutable Position: Range
+    val mutable Parent: Node|null
     val mutable Operator: Operator
-    val mutable Trivia: Trivia option
 
     member this.ValueText = this.Value.ToRawString()
 
@@ -66,18 +63,18 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
 
     override this.ToString() = $"{this.Key}={this.ValueText}"
 
-    new(key: string, value: Value, pos: Range, op: Operator) =
+    new(key: string, value: Value, pos: Range, op: Operator, parent: Node|null) =
         { Key = key
           Value = value
           Position = pos
           Operator = op
-          Trivia = None }
+          Parent = parent }
 
-    new(key: string, value: Value, op: Operator) = Leaf(key, value, Range.Zero, op)
+    new(key: string, value: Value, op: Operator) = Leaf(key, value, Range.Zero, op, null)
 
     new(keyvalueitem: KeyValueItem, ?pos: Range) =
         let (KeyValueItem(Key(key), value, op)) = keyvalueitem
-        Leaf(key, value, pos |> Option.defaultValue Range.Zero, op)
+        Leaf(key, value, pos |> Option.defaultValue Range.Zero, op, null)
 
     static member Create key value = LeafChild(Leaf(key, value))
 
@@ -85,12 +82,7 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
         member this.Key = this.Key
         member this.Position = this.Position
 
-        member this.Trivia
-            with get () = this.Trivia
-            and set v = this.Trivia <- v
-
 and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
-    member val Trivia: Trivia option = None with get, set
     member val Value = value with get, set
 
     member this.ValueText = this.Value.ToRawString().Trim quoteCharArray
@@ -106,10 +98,6 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
     interface IKeyPos with
         member this.Key = this.Key
         member this.Position = this.Position
-
-        member this.Trivia
-            with get () = this.Trivia
-            and set v = this.Trivia <- v
 
 and
     [<Struct>]
@@ -168,7 +156,6 @@ and ValueClause(keys: Value[], pos: Range) =
 
     member val Position = pos
     member val Scope: Scope = scopeManager.AnyScope with get, set
-    member val Trivia: Trivia option = None with get, set
     member _.AllChildren = all |> ResizeArray<Child>
 
     member _.AllChildren
@@ -314,10 +301,6 @@ and ValueClause(keys: Value[], pos: Range) =
 
         member this.Position = this.Position
 
-        member this.Trivia
-            with get () = this.Trivia
-            and set v = this.Trivia <- v
-
     interface IClause with
         member this.Nodes = this.Nodes
         member this.Leaves = this.Leaves
@@ -357,9 +340,8 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     member val Key: string = key
 
     member val Position = pos
-    member val Scope: Scope = scopeManager.AnyScope with get, set
-    member val Trivia: Trivia option = None with get, set
-
+    member val Parent: Node|null = null with get, set
+    // member val Scope: Scope = scopeManager.AnyScope with get, set
     member internal _.AllChildren = all |> ResizeArray<Child>
 
     member internal _.AllChildren
@@ -367,7 +349,7 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
             all <- (value |> Seq.toArray)
             resetLeaves ()
 
-    /// 直接返回底层数组
+    /// 返回包含所有子元素的底层数组
     member _.AllArray = all
 
     member _.AllArray
@@ -489,7 +471,7 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     member this.SetLeafValue key leafValue =
         this.All <-
             let leaf =
-                Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals))
+                Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals, this))
 
             all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
 
@@ -569,10 +551,6 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
         member this.Key = this.Key
         member this.Position = this.Position
 
-        member this.Trivia
-            with get () = this.Trivia
-            and set v = this.Trivia <- v
-
     interface IClause with
         member this.Nodes = this.Nodes
         member this.Leaves = this.Leaves
@@ -587,7 +565,7 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
 module ProcessCore =
 
     let processNode (postinit: Node -> Node) inner (key: string) (pos: Range) (sl: Statement list) : Node =
-        let node = Node(key, pos) |> postinit //  |> postinit// :?> Node |> postinit
+        let node = Node(key, pos) |> postinit
         let children = sl |> List.map inner
         node.All <- children
         node
@@ -637,15 +615,21 @@ module ProcessCore =
 
         and lookupNode =
             (fun (key: string) (pos: Range) (context: LookupContext) (sl: Statement list) ->
-                let n = Node(key, pos)
+                let node = Node(key, pos)
 
                 let children =
                     sl
                     |> List.fold (nodeWindowFun context) (None, None, [])
                     |> (fun (_, _, ls) -> ls |> List.rev)
 
-                n.All <- children
-                n)
+                for child in children do
+                    match child with
+                    | NodeChild nodeChild -> nodeChild.Parent <- node
+                    | LeafChild leafChild -> leafChild.Parent <- node
+                    | _ -> ()
+
+                node.All <- children
+                node)
 
         and lookupValueClause =
             (fun (pos: Range) (context: LookupContext) (sl: Statement list) keys ->

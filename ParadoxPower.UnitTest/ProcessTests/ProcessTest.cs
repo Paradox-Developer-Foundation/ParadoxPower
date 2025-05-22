@@ -24,7 +24,6 @@ public class ProcessTest
     {
         _root = ParserHelper.Parse(Text);
     }
-    
 
     [Test]
     public void LeavesTest()
@@ -87,6 +86,7 @@ public class ProcessTest
             Assert.That(leaf.Key, Is.EqualTo("key1"));
             Assert.That(leaf.Value.ToRawString(), Is.EqualTo("value"));
             Assert.That(leaf.Operator, Is.EqualTo(Types.Operator.Equals));
+            Assert.That(leaf.Value.IsString, Is.True);
         });
     }
 
@@ -110,6 +110,40 @@ public class ProcessTest
             Assert.That(node.Leaves, Is.Empty);
             Assert.That(node.Comments, Is.Empty);
             Assert.That(node.Position, Is.EqualTo(Position.Range.Zero));
+            Assert.That(node.Parent, Is.Null);
         });
+    }
+
+    [Test]
+    public void ChildrenOrderTest()
+    {
+        var children = _root.AllArray;
+
+        Assert.That(children[0].TryGetComment(out var common), Is.True);
+        Assert.That(children[1].TryGetLeaf(out var leaf), Is.True);
+        Assert.That(children[2].TryGetNode(out var node), Is.True);
+        Assert.That(common, Is.Not.Null);
+        Assert.That(leaf, Is.Not.Null);
+        Assert.That(node, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(common.Comment, Is.EqualTo(" comment1"));
+            Assert.That(leaf.Key, Is.EqualTo("key1"));
+            Assert.That(node.Key, Is.EqualTo("node1"));
+        });
+    }
+
+    [Test]
+    public void ParentTest()
+    {
+        var children = _root.AllArray;
+
+        children[1].TryGetLeaf(out var leaf);
+        children[2].TryGetNode(out var node);
+        Assert.That(node!.Parent, Is.SameAs(_root));
+        Assert.That(node.Parent.Parent, Is.Null);
+        Assert.That(leaf!.Parent, Is.SameAs(_root));
+        Assert.That(leaf.Parent.Parent, Is.Null);
     }
 }
