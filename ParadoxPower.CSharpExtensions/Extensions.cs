@@ -70,7 +70,7 @@ public static class Extensions
     /// <returns>找到值时返回<c>true</c>, 反之为<c>false</c></returns>
     public static bool TryGetLeaf(this Node node, string key, [NotNullWhen(true)] out Leaf? leaf)
     {
-        foreach (var leafValue in node.GetLeavesArray())
+        foreach (var leafValue in node.Leaves)
         {
             if (StringComparer.OrdinalIgnoreCase.Equals(leafValue.Key, key))
             {
@@ -241,7 +241,7 @@ public static class Extensions
     /// <returns></returns>
     public static string ToScript(this Node rootNode)
     {
-        return CKPrinter.PrettyPrintStatements(
+        return Printer.PrettyPrintStatements(
             rootNode.AllArray.Select(child => GetRawStatement(child, string.Empty))
         );
     }

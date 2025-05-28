@@ -3,7 +3,7 @@ namespace ParadoxPower.Parser
 open Types
 open FParsec
 
-module CKPrinter =
+module Printer =
     let private tabs n = String.replicate n "\t"
 
     let private printTroop depth t = (tabs depth) + t.ToString() + "\n"

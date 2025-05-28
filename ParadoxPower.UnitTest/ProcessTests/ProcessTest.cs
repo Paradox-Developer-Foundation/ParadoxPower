@@ -28,7 +28,7 @@ public class ProcessTest
     [Test]
     public void LeavesTest()
     {
-        Assert.That(_root.Leaves, Has.Count.EqualTo(1));
+        Assert.That(_root.Leaves.ToArray(), Has.Length.EqualTo(1));
     }
 
     [Test]

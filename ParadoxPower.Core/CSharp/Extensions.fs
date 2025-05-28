@@ -126,4 +126,4 @@ type Extensions =
         stringWriter.ToString()
 
     [<Extension>]
-    static member inline PrettyPrint(obj: Statement) = obj |> CKPrinter.PrettyPrintStatement
+    static member inline PrettyPrint(obj: Statement) = obj |> Printer.PrettyPrintStatement
