@@ -138,19 +138,6 @@ and ValueClause(keys: Value[], pos: Range) =
         | _ -> false
 
     let mutable all: Child array = Array.empty
-    let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
-
-    let reset () =
-        _leaves <-
-            lazy
-                (all
-                 |> Array.choose (function
-                     | LeafChild l -> Some l
-                     | _ -> None))
-
-    let leaves () = _leaves.Force()
-
-    do reset ()
 
     new() = ValueClause([||], Range.Zero)
 
@@ -161,21 +148,18 @@ and ValueClause(keys: Value[], pos: Range) =
     member _.AllChildren
         with set (value: ResizeArray<Child>) =
             all <- (value |> Seq.toArray)
-            reset ()
 
     member _.AllArray = all
 
     member _.AllArray
         with set value =
             all <- value
-            reset ()
 
     member this.All = all |> List.ofSeq
 
     member this.All
         with set (value: Child list) =
             all <- (value |> List.toArray)
-            reset ()
 
     member this.Nodes =
         all
@@ -220,26 +204,24 @@ and ValueClause(keys: Value[], pos: Range) =
 
     member this.Has x = all |> (Seq.exists (bothFind x))
 
-    member _.Tag x =
-        leaves ()
-        |> Array.tryPick (function
+    member this.Tag x =
+        this.Leaves
+        |> Seq.tryPick (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
 
-    member _.Leafs x =
-        leaves ()
-        |> Array.choose (function
+    member this.Leafs x =
+        this.Leaves
+        |> Seq.choose (function
             | l when l.Key == x -> Some l
             | _ -> None)
-        |> Array.toSeq
 
-    member _.Tags x =
-        leaves ()
-        |> Array.choose (function
+    member this.Tags x =
+        this.Leaves
+        |> Seq.choose (function
             | l when l.Key == x -> Some l.Value
             | _ -> None)
-        |> Array.toSeq
-
+        
     member this.TagText x =
         this.Tag x
         |> function
@@ -320,20 +302,6 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
         | _ -> false
 
     let mutable all: Child array = Array.empty
-    let mutable _leaves: Lazy<Leaf array> = lazy Array.empty
-
-    let resetLeaves () =
-        _leaves <-
-            lazy
-                (all
-                 |> Array.choose (function
-                     | LeafChild l -> Some l
-                     | _ -> None))
-
-    do resetLeaves ()
-
-    /// 返回惰性加载的 Leaf 数组
-    member internal this.GetLeavesArray() = _leaves.Force()
 
     new(key: string) = Node(key, Range.Zero)
 
@@ -341,13 +309,11 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
 
     member val Position = pos
     member val Parent: Node|null = null with get, set
-    // member val Scope: Scope = scopeManager.AnyScope with get, set
     member internal _.AllChildren = all |> ResizeArray<Child>
 
     member internal _.AllChildren
         with set (value: ResizeArray<Child>) =
             all <- (value |> Seq.toArray)
-            resetLeaves ()
 
     /// 返回包含所有子元素的底层数组
     member _.AllArray = all
@@ -355,14 +321,12 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     member _.AllArray
         with set value =
             all <- value
-            resetLeaves ()
 
     member internal this.All = all |> List.ofSeq
 
     member internal this.All
         with set (value: Child list) =
             all <- (value |> List.toArray)
-            resetLeaves ()
 
     member this.Nodes: Node seq =
         seq {
@@ -372,7 +336,13 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
                 | _ -> ()
         }
 
-    member this.Leaves: Leaf IReadOnlyCollection = this.GetLeavesArray()
+    member this.Leaves: Leaf seq = 
+        seq {
+            for child in all do
+                match child with
+                | LeafChild leaf -> yield leaf
+                | _ -> ()
+        }
 
     member this.Comments: Comment seq =
         seq {
@@ -409,38 +379,37 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
 
     member this.Has key = all |> (Array.exists (bothFind key))
 
-    member this.Tag x =
-        this.GetLeavesArray()
-        |> Array.tryPick (function
-            | l when l.Key == x -> Some l.Value
+    member this.Tag key =
+        this.Leaves
+        |> Seq.tryPick (function
+            | l when l.Key == key -> Some l.Value
             | _ -> None)
 
     member this.GetLeaves key =
-        this.GetLeavesArray()
-        |> Array.choose (function
+        this.Leaves
+        |> Seq.choose (function
             | l when l.Key == key -> Some l
             | _ -> None)
-        |> Array.toSeq
 
     member this.GetLeaf(key: string) =
-        this.GetLeavesArray() |> Array.tryFind (fun (item: Leaf) -> item.Key == key)
+        this.Leaves |> Seq.tryFind (fun (item: Leaf) -> item.Key == key)
 
-    member this.Tags x =
-        this.GetLeavesArray()
-        |> Array.choose (function
-            | l when l.Key == x -> Some l.Value
+    /// 获取拥有指定 key 的所有 Leaf 的值
+    member this.Tags key =
+        this.Leaves
+        |> Seq.choose (function
+            | l when l.Key == key -> Some l.Value
             | _ -> None)
-        |> Array.toSeq
 
-    member this.TagText x =
-        this.Tag x
+    member this.TagText key =
+        this.Tag key
         |> function
             | Some(QString s) -> s
             | Some s -> s.ToString()
             | None -> ""
 
-    member this.TagsText x =
-        this.Tags x
+    member this.TagsText key =
+        this.Tags key
         |> Seq.map (function
             | QString s -> s
             | s -> s.ToString())
@@ -455,7 +424,6 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
         match Array.tryFindIndex (bothFind (key)) this.AllArray with
         | Some index ->
             Array.set this.AllArray index value
-            resetLeaves ()
         | None -> ()
 
     member this.SetValues key value =
@@ -463,10 +431,8 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
             if bothFind (key) (this.AllArray[i]) then
                 Array.set this.AllArray i value
 
-        resetLeaves ()
-
     /// <summary>
-    /// 便捷设置 <see cref="Leaf"/>, 使用 '=' 作为 <see cref="Operator"/>, 如果key不存在则添加
+    /// 便捷设置 <see cref="Leaf"/>, 使用 '=' 作为 <see cref="Operator"/>, 如果<c>key</c>不存在则添加
     /// </summary>
     member this.SetLeafValue key leafValue =
         this.All <-
@@ -480,10 +446,6 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
         Array.Copy(all, newArray, all.Length)
         newArray[newArray.Length - 1] <- child
         all <- newArray
-
-        match child with
-        | LeafChild _ -> resetLeaves ()
-        | _ -> ()
 
     member this.AddChild(child: Node) = this.AddChild(Child.NodeChild(child))
 
@@ -638,7 +600,7 @@ module ProcessCore =
             | Value(pos, v) -> LeafValueChild(LeafValue(v, pos))
 
         member _.ProcessNode() =
-            (fun key pos sl ->
+            (fun key pos ->
                 lookupNode
                     key
                     pos
@@ -646,11 +608,10 @@ module ProcessCore =
                       parents = []
                       scope = ""
                       previous = ""
-                      entityType = EntityType.Other }
-                    sl)
+                      entityType = EntityType.Other })
 
         member _.ProcessNode(entityType: EntityType) =
-            (fun key pos sl ->
+            (fun key pos ->
                 lookupNode
                     key
                     pos
@@ -658,7 +619,6 @@ module ProcessCore =
                       parents = []
                       scope = ""
                       previous = ""
-                      entityType = entityType }
-                    sl)
+                      entityType = entityType })
 
     let simpleProcess = BaseProcess()
