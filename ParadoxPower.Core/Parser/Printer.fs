@@ -16,7 +16,7 @@ module Printer =
     let rec private printValue v depth =
         match v with
         | Clause kvl -> "{\n" + printKeyValueList kvl (depth + 1) + tabs depth + "}"
-        | x -> x.ToString() + ""
+        | x -> x.ToString()
 
     and private printKeyValue (acc, leadingNewline, prevStart, prevEnd) kv depth =
         match kv with
