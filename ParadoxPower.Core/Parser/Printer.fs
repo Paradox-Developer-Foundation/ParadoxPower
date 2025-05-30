@@ -4,14 +4,11 @@ open Types
 open FParsec
 
 module Printer =
-    let private tabs n = String.replicate n "\t"
+    let private tabs n = new string ('\t', n)
 
-    let private printTroop depth t = (tabs depth) + t.ToString() + "\n"
-
-    let private printValuelist depth is =
+    let private printValueList depth is =
         let printOne = (fun i -> tabs depth + (string i) + "\n")
         List.map printOne is |> List.fold (+) ""
-
 
     let rec private printValue v depth =
         match v with
@@ -20,7 +17,7 @@ module Printer =
 
     and private printKeyValue (acc, leadingNewline, prevStart, prevEnd) kv depth =
         match kv with
-        | CommentStatement({Position=r; Comment=c}) ->
+        | CommentStatement({ Position = r; Comment = c }) ->
             if r.StartLine = prevStart && r.StartLine = prevEnd || (not leadingNewline) then
                 acc + (tabs depth) + "#" + c, true, r.StartLine, r.EndLine
             else
@@ -46,9 +43,9 @@ module Printer =
             r.StartLine,
             r.EndLine
 
-    and private printKeyValueList kvl depth =
+    and private printKeyValueList (kvl: Statement seq) (depth: int) : string =
         kvl
-        |> List.fold (fun acc kv -> printKeyValue acc kv depth) ("", false, -1, -1)
+        |> Seq.fold (fun acc kv -> printKeyValue acc kv depth) ("", false, -1, -1)
         |> (fun (res, leadingNewline, _, _) -> if leadingNewline then res + "\n" else res)
 
     let printTopLevelKeyValueList kvl =
@@ -74,12 +71,10 @@ module Printer =
             printKeyValueList ev 0
         | Failure(msg, _, _) -> msg
 
-    let PrettyPrintStatements (statements: Statement seq) =
-        printKeyValueList (statements |> List.ofSeq) 0
-    
+    let PrettyPrintStatements (statements: Statement seq) = printKeyValueList statements 0
+
     let PrettyPrintFile file = prettyPrint file
-    
-    let PrettyPrintStatement statement =
-        printKeyValueList [ statement ] 0
-    
+
+    let PrettyPrintStatement statement = printKeyValueList [| statement |] 0
+
     let PrettyPrintFileResult = prettyPrintResult
