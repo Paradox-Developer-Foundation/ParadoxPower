@@ -60,7 +60,7 @@ module YAMLLocalisationParser =
             { key = k; entries = List.choose id es })
         <?> "file"
 
-    let parseLocFile filepath =
+    let ParseLocFile filepath =
         runParserOnFile file () filepath System.Text.Encoding.UTF8
 
-    let parseLocText text name = runParserOnString file () name text
+    let ParseLocText text name = runParserOnString file () name text
