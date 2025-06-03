@@ -1,5 +1,6 @@
 namespace ParadoxPower.Localisation
 
+open System
 open ParadoxPower.Utilities.Position
 
 [<Struct>]
@@ -7,8 +8,8 @@ open ParadoxPower.Utilities.Position
 [<System.Runtime.CompilerServices.IsReadOnly>]
 #endif
 type Entry =
-    { key: string
-      value: char option
-      desc: string
-      position: Range
-      errorRange: Range option }
+    { Key: string
+      Value: Nullable<char>
+      Desc: string
+      Position: Range
+      ErrorRange: Nullable<Range> }

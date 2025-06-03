@@ -145,7 +145,7 @@ module internal SharedParsers =
             Resources.Parse_Clause
 
     let quotedCharSnippet = many1Satisfy (fun c -> c <> '\\' && c <> '"')
-    let escapedChar = (pstring "\\\"" <|> pstring "\\") |>> string
+    let escapedChar = (stringReturn "\\\"" "\"" <|> pstring "\\")
     let metaprogrammingCharSnippet = many1Satisfy (fun c -> c <> ']' && c <> '\\')
 
     let getRange (start: Position) (endp: Position) =

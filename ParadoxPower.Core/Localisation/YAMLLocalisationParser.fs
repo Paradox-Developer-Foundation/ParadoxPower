@@ -1,12 +1,14 @@
 namespace ParadoxPower.Localisation
 
+open System
+open ParadoxPower.Parser.SharedParsers
 open ParadoxPower.Utilities.Position
 
 /// 本地化文件解析器
 module YAMLLocalisationParser =
     open FParsec
 
-    type LocFile = { key: string; entries: Entry list }
+    type LocFile = { Key: string; Entries: Entry list }
 
     let inline isLocValueChar (c: char) =
         isAsciiLetter c
@@ -20,10 +22,10 @@ module YAMLLocalisationParser =
         || (c >= '\u3000' && c <= '\u30FF')
         || (c >= '\uFF00' && c <= '\uFFEF')
 
-    let key = many1Satisfy ((=) ':' >> not) .>> pchar ':' .>> spaces <?> "key"
+    let key = many1Satisfy ((=) ':' >> not) .>> skipChar ':' .>> spaces <?> "key"
 
     let desc =
-        many1Satisfy isLocValueChar .>>. getPosition .>>. restOfLine false <?> "desc"
+        between (skipChar '"') (skipChar '"') (manyStrings (quotedCharSnippet <|> escapedChar) <?> "desc") .>>. getPosition
 
     let value = digit .>> spaces <?> "version"
 
@@ -37,27 +39,27 @@ module YAMLLocalisationParser =
             (opt value)
             desc
             (getPosition .>> spaces)
-            (fun s k v ((validDesc, endofValid), invalidDesc) e ->
-                let errorRange =
-                    if endofValid <> e then
-                        Some(getRange endofValid e)
+            (fun s k v (validDesc, endOfValid) e ->
+                let errorRange: Nullable<Range> =
+                    if endOfValid <> e then
+                        Nullable(getRange endOfValid e)
                     else
-                        None
+                        Nullable()
 
-                { key = k
-                  value = v
-                  desc = validDesc + invalidDesc
-                  position = getRange s e
-                  errorRange = errorRange })
+                { Key = k
+                  Value = if v.IsSome then Nullable(v.Value) else Nullable()
+                  Desc = validDesc
+                  Position = getRange s e
+                  ErrorRange = errorRange  })
         <?> "entry"
 
-    let comment = pchar '#' >>. restOfLine true .>> spaces <?> "comment"
+    let comment = skipChar '#' >>. restOfLine true .>> spaces <?> "comment"
 
     let file =
         spaces
         >>. many (attempt comment)
         >>. pipe2 key (many ((attempt comment |>> (fun _ -> None)) <|> (entry |>> Some)) .>> eof) (fun k es ->
-            { key = k; entries = List.choose id es })
+            { Key = k; Entries = List.choose id es })
         <?> "file"
 
     let ParseLocFile filepath =

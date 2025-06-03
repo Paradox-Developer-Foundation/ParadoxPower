@@ -9,7 +9,7 @@ open FParsec.CharParsers
 type Extensions =
     /// Retrieve result or null (if failure)
     [<Extension>]
-    static member inline GetResult(obj: ParserResult<_, _>) =
+    static member inline GetResult(obj: ParserResult<'a, 'b>): 'a|null =
         obj
         |> function
             | Success(s, _, _) -> s
@@ -17,7 +17,7 @@ type Extensions =
 
     /// Retrieve error message or null (if success)
     [<Extension>]
-    static member inline GetError(obj: ParserResult<_, _>) =
+    static member inline GetError(obj: ParserResult<_, _>): ParserError|null =
         obj
         |> function
             | Failure(_, e, _) ->
