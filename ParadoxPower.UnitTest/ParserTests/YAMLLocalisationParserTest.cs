@@ -7,13 +7,15 @@ namespace ParadoxPower.UnitTest.ParserTests;
 public sealed class YAMLLocalisationParserTest
 {
     private const string Text = """
-        l_simp_chinese:
+        #comment
+        l_simp_chinese:#comment
+        #comment
         key1: " value1" #comment1
         key2:2 "value2"
         key3: "" #comment2
         key4: "va\"lue4" #comment3
         key5:5 "va\"lue5" #comment4
-        key6:"value6" #comment4
+        key6:"value6"#comment4
         #comment5
         """;
 
@@ -56,6 +58,7 @@ public sealed class YAMLLocalisationParserTest
         Assert.That(key5.Desc, Is.EqualTo("va\"lue5"));
         Assert.That(key5.Value, Is.EqualTo('5'));
         Assert.That(key6.Desc, Is.EqualTo("value6"));
+        Assert.That(key1.Position, Is.EqualTo(result.Entries[0].Position));
     }
 
     [Test]

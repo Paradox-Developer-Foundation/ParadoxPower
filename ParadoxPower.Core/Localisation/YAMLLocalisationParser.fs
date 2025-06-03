@@ -1,6 +1,7 @@
 namespace ParadoxPower.Localisation
 
 open System
+open System.Runtime.CompilerServices
 open ParadoxPower.Parser.SharedParsers
 open ParadoxPower.Utilities.Position
 
@@ -22,10 +23,12 @@ module YAMLLocalisationParser =
         || (c >= '\u3000' && c <= '\u30FF')
         || (c >= '\uFF00' && c <= '\uFFEF')
 
-    let private key = many1Satisfy ((=) ':' >> not) .>> skipChar ':' .>> spaces <?> "key"
+    let private key =
+        many1Satisfy ((=) ':' >> not) .>> skipChar ':' .>> spaces <?> "key"
 
     let private desc =
-        between (skipChar '"') (skipChar '"') (manyStrings (quotedCharSnippet <|> escapedChar) <?> "desc") .>>. getPosition
+        between (skipChar '"') (skipChar '"') (manyStrings (quotedCharSnippet <|> escapedChar) <?> "desc")
+        .>>. getPosition
 
     let private value = digit .>> spaces <?> "version"
 
@@ -33,33 +36,40 @@ module YAMLLocalisationParser =
         mkRange start.StreamName (mkPos (int start.Line) (int start.Column)) (mkPos (int endp.Line) (int endp.Column))
 
     let private entry =
-        pipe5
-            getPosition
-            key
-            (opt value)
-            desc
-            (getPosition .>> spaces)
-            (fun s k v (validDesc, endOfValid) e ->
-                let errorRange: Nullable<Range> =
-                    if endOfValid <> e then
-                        Nullable(getRange endOfValid e)
-                    else
-                        Nullable()
+        pipe5 getPosition key (opt value) desc (getPosition .>> spaces) (fun s k v (validDesc, endOfValid) e ->
+            let errorRange: Nullable<Range> =
+                if endOfValid <> e then
+                    Nullable(getRange endOfValid e)
+                else
+                    Nullable()
 
-                { Key = k
-                  Value = if v.IsSome then Nullable(v.Value) else Nullable()
-                  Desc = validDesc
-                  Position = getRange s e
-                  ErrorRange = errorRange  })
+            { Key = k
+              Value = if v.IsSome then Nullable(v.Value) else Nullable()
+              Desc = validDesc
+              Position = getRange s e
+              ErrorRange = errorRange })
         <?> "entry"
 
-    let private comment = skipChar '#' >>. restOfLine true .>> spaces <?> "comment"
+    let private comment = skipChar '#' >>. skipRestOfLine true .>> spaces <?> "comment"
+
+    let private manyOption p =
+        Inline.Many(
+            firstElementParser = p,
+            elementParser = p,
+            stateFromFirstElement =
+                (fun (value: Option<'a>) ->
+                    let list = []
+                    if value.IsSome then value.Value :: list else list),
+            foldState = (fun (list: 'a list) newValue -> if newValue.IsSome then newValue.Value :: list else list),
+            resultFromState = List.rev,
+            resultForEmptySequence = (fun () -> [])
+        )
 
     let private file =
         spaces
         >>. many (attempt comment)
-        >>. pipe2 key (many ((attempt comment |>> (fun _ -> None)) <|> (entry |>> Some)) .>> eof) (fun k es ->
-            { Key = k; Entries = List.choose id es })
+        >>. pipe2 key (manyOption ((attempt comment |>> (fun _ -> None)) <|> (entry |>> Some)) .>> eof) (fun k es ->
+            { Key = k; Entries = es })
         <?> "file"
 
     let ParseLocFile filepath =
