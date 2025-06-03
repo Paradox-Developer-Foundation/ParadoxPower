@@ -6,10 +6,6 @@ open FParsec
 module Printer =
     let private tabs n = new string ('\t', n)
 
-    let private printValueList depth is =
-        let printOne = (fun i -> tabs depth + (string i) + "\n")
-        List.map printOne is |> List.fold (+) ""
-
     let rec private printValue v depth =
         match v with
         | Clause kvl -> "{\n" + printKeyValueList kvl (depth + 1) + tabs depth + "}"
