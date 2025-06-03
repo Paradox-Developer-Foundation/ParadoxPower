@@ -82,7 +82,7 @@ module Types =
         
         override x.ToString() =
             match x with
-            | Clause b -> "{ " + $"{b}" + " }"
+            | Clause b -> $"{{ {b} }}"
             | QString s -> "\"" + s + "\""
             | String s -> s
             | Bool b -> if b then "yes" else "no"
@@ -91,7 +91,7 @@ module Types =
 
         member x.ToRawString() =
             match x with
-            | Clause b -> "{ " + $"{b}" + " }"
+            | Clause b -> $"{{ {b} }}"
             | QString s -> s
             | String s -> s
             | Bool b -> if b then "yes" else "no"

@@ -85,7 +85,7 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
 and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
     member val Value = value with get, set
 
-    member this.ValueText = this.Value.ToRawString().Trim quoteCharArray
+    member this.ValueText = this.Value.ToRawString()
 
     member this.Key = this.ValueText
 

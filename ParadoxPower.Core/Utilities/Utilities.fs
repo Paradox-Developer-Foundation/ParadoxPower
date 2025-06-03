@@ -70,11 +70,6 @@ module Utils =
     [<Literal>]
     let magicChar = '\u1E00'
 
-    [<Literal>]
-    let magicCharString = "\u1E00"
-
-    let quoteCharArray = [| '"' |]
-
 module TryParser =
     let tryParseWith tryParseFunc =
         tryParseFunc
