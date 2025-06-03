@@ -10,7 +10,7 @@ module YAMLLocalisationParser =
 
     type LocFile = { Key: string; Entries: Entry list }
 
-    let inline isLocValueChar (c: char) =
+    let inline private isLocValueChar (c: char) =
         isAsciiLetter c
         || (c >= '\u0020' && c <= '\u007E')
         || (c >= '\u00A0' && c <= '\u024F')
@@ -22,17 +22,17 @@ module YAMLLocalisationParser =
         || (c >= '\u3000' && c <= '\u30FF')
         || (c >= '\uFF00' && c <= '\uFFEF')
 
-    let key = many1Satisfy ((=) ':' >> not) .>> skipChar ':' .>> spaces <?> "key"
+    let private key = many1Satisfy ((=) ':' >> not) .>> skipChar ':' .>> spaces <?> "key"
 
-    let desc =
+    let private desc =
         between (skipChar '"') (skipChar '"') (manyStrings (quotedCharSnippet <|> escapedChar) <?> "desc") .>>. getPosition
 
-    let value = digit .>> spaces <?> "version"
+    let private value = digit .>> spaces <?> "version"
 
-    let getRange (start: Position) (endp: Position) =
+    let private getRange (start: Position) (endp: Position) =
         mkRange start.StreamName (mkPos (int start.Line) (int start.Column)) (mkPos (int endp.Line) (int endp.Column))
 
-    let entry =
+    let private entry =
         pipe5
             getPosition
             key
@@ -53,9 +53,9 @@ module YAMLLocalisationParser =
                   ErrorRange = errorRange  })
         <?> "entry"
 
-    let comment = skipChar '#' >>. restOfLine true .>> spaces <?> "comment"
+    let private comment = skipChar '#' >>. restOfLine true .>> spaces <?> "comment"
 
-    let file =
+    let private file =
         spaces
         >>. many (attempt comment)
         >>. pipe2 key (many ((attempt comment |>> (fun _ -> None)) <|> (entry |>> Some)) .>> eof) (fun k es ->
