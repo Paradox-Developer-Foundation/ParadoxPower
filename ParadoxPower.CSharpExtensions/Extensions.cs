@@ -6,6 +6,9 @@ using Microsoft.FSharp.Collections;
 using ParadoxPower.Parser;
 using ParadoxPower.Process;
 using ParadoxPower.Utilities;
+#if RELEASE
+using System.Runtime.CompilerServices;
+#endif
 
 namespace ParadoxPower.CSharpExtensions;
 
@@ -94,13 +97,10 @@ public static class Extensions
     {
         foreach (var child in n.AllArray)
         {
-            if (!child.IsNodeChild)
-            {
-                continue;
-            }
-
-            var childNode = child.node;
-            if (StringComparer.OrdinalIgnoreCase.Equals(childNode.Key, key))
+            if (
+                child.TryGetNode(out var childNode)
+                && childNode.Key.Equals(key, StringComparison.OrdinalIgnoreCase)
+            )
             {
                 node = childNode;
                 return true;
@@ -148,7 +148,11 @@ public static class Extensions
     {
         if (child.IsLeafChild)
         {
-            leaf = child.leaf;
+#if DEBUG
+            leaf = ((Child.LeafChild)child).Item;
+#else
+            leaf = Unsafe.As<Child.LeafChild>(child).Item;
+#endif
             return true;
         }
 
@@ -166,7 +170,11 @@ public static class Extensions
     {
         if (child.IsNodeChild)
         {
-            node = child.node;
+#if DEBUG
+            node = ((Child.NodeChild)child).Item;
+#else
+            node = Unsafe.As<Child.NodeChild>(child).Item;
+#endif
             return true;
         }
 
@@ -187,7 +195,11 @@ public static class Extensions
     {
         if (child.IsLeafValueChild)
         {
-            leafValue = child.leafValue;
+#if DEBUG
+            leafValue = ((Child.LeafValueChild)child).Item;
+#else
+            leafValue = Unsafe.As<Child.LeafValueChild>(child).Item;
+#endif
             return true;
         }
 
@@ -205,7 +217,11 @@ public static class Extensions
     {
         if (child.IsCommentChild)
         {
-            comment = child.comment;
+#if DEBUG
+            comment = ((Child.CommentChild)child).Item;
+#else
+            comment = Unsafe.As<Child.CommentChild>(child).Item;
+#endif
             return true;
         }
 
@@ -226,7 +242,11 @@ public static class Extensions
     {
         if (child.IsValueClauseChild)
         {
-            valueClause = child.valueClause;
+#if DEBUG
+            valueClause = ((Child.ValueClauseChild)child).Item;
+#else
+            valueClause = Unsafe.As<Child.ValueClauseChild>(child).Item;
+#endif
             return true;
         }
 

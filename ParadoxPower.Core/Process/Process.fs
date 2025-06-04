@@ -99,20 +99,16 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
         member this.Key = this.Key
         member this.Position = this.Position
 
-and
-    [<Struct>]
-#if NET5_0_OR_GREATER
-    [<System.Runtime.CompilerServices.IsReadOnly>]
-#endif
-    Child =
+and Child =
+    // 方便测试代码
     #if RELEASE
     internal
     #endif
-    | NodeChild of node: Node
-    | LeafChild of leaf: Leaf
-    | CommentChild of comment: Comment
-    | LeafValueChild of leafValue: LeafValue
-    | ValueClauseChild of valueClause: ValueClause
+    | NodeChild of Node
+    | LeafChild of Leaf
+    | CommentChild of Comment
+    | LeafValueChild of LeafValue
+    | ValueClauseChild of ValueClause
 
     static member Create node = NodeChild node
     static member Create leaf = LeafChild leaf
