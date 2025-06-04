@@ -75,4 +75,46 @@ public class ExtensionsTest
         value.TryGetString(out _).ShouldBeFalse();
         value.TryGetQString(out _).ShouldBeFalse();
     }
+
+    [Test]
+    public void TryGetDecimalValueTest()
+    {
+        var value = Types.Value.NewFloat(11.11m);
+
+        value.TryGetDecimal(out decimal decimalValue).ShouldBeTrue();
+        decimalValue.ShouldBe(11.11m);
+        value.TryGetBool(out _).ShouldBeFalse();
+        value.TryGetInt(out _).ShouldBeFalse();
+        value.TryGetClause(out _).ShouldBeFalse();
+        value.TryGetString(out _).ShouldBeFalse();
+        value.TryGetQString(out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public void TryGetStringValueTest()
+    {
+        var value = Types.Value.NewStringValue("test");
+
+        value.TryGetString(out string? stringValue).ShouldBeTrue();
+        stringValue.ShouldBe("test");
+        value.TryGetBool(out _).ShouldBeFalse();
+        value.TryGetInt(out _).ShouldBeFalse();
+        value.TryGetClause(out _).ShouldBeFalse();
+        value.TryGetDecimal(out _).ShouldBeFalse();
+        value.TryGetQString(out _).ShouldBeFalse();
+    }
+
+    [Test]
+    public void TryGetQStringValueTest()
+    {
+        var value = Types.Value.NewQStringValue("test");
+
+        value.TryGetQString(out string? qStringValue).ShouldBeTrue();
+        qStringValue.ShouldBe("test");
+        value.TryGetBool(out _).ShouldBeFalse();
+        value.TryGetInt(out _).ShouldBeFalse();
+        value.TryGetClause(out _).ShouldBeFalse();
+        value.TryGetDecimal(out _).ShouldBeFalse();
+        value.TryGetString(out _).ShouldBeFalse();
+    }
 }
