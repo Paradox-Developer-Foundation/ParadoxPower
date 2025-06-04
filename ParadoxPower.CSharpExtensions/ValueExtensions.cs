@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ParadoxPower.Parser;
+#if RELEASE
+using System.Runtime.CompilerServices;
+#endif
 
 namespace ParadoxPower.CSharpExtensions;
 
@@ -16,7 +19,11 @@ public static class ValueExtensions
     {
         if (val.IsInt)
         {
+#if DEBUG
             value = ((Types.Value.Int)val).Item;
+#else
+            value = Unsafe.As<Types.Value.Int>(val).Item;
+#endif
             return true;
         }
         value = 0;
@@ -33,7 +40,12 @@ public static class ValueExtensions
     {
         if (val.IsBool)
         {
+#if DEBUG
+
             value = ((Types.Value.Bool)val).Item;
+#else
+            value = Unsafe.As<Types.Value.Bool>(val).Item;
+#endif
             return true;
         }
 
@@ -51,7 +63,11 @@ public static class ValueExtensions
     {
         if (val.IsFloat)
         {
+#if DEBUG
             value = ((Types.Value.Float)val).Item;
+#else
+            value = Unsafe.As<Types.Value.Float>(val).Item;
+#endif
             return true;
         }
 
@@ -69,7 +85,11 @@ public static class ValueExtensions
     {
         if (val.IsString)
         {
+#if DEBUG
             value = ((Types.Value.String)val).Item;
+#else
+            value = Unsafe.As<Types.Value.String>(val).Item;
+#endif
             return true;
         }
 
@@ -87,14 +107,18 @@ public static class ValueExtensions
     {
         if (val.IsQString)
         {
+#if DEBUG
             value = ((Types.Value.QString)val).Item;
+#else
+            value = Unsafe.As<Types.Value.QString>(val).Item;
+#endif
             return true;
         }
 
         value = null;
         return false;
     }
-    
+
     /// <summary>
     /// 尝试获取 <see cref="Types.Statement"/>
     /// </summary>
@@ -108,7 +132,11 @@ public static class ValueExtensions
     {
         if (val.IsClause)
         {
+#if DEBUG
             value = ((Types.Value.Clause)val).Item;
+#else
+            value = Unsafe.As<Types.Value.Clause>(val).Item;
+#endif
             return true;
         }
 
