@@ -181,16 +181,15 @@ module internal SharedParsers =
         <?> Resources.Parse_Comment
 
     let key = (many1SatisfyL isIdChar "id character") .>> whiteSpace |>> Key <?> "id"
-
-    let keyQ =
+ 
+    let keyQ: Parser<Key,unit> =
         between (ch '"') (ch '"') (manyStrings (quotedCharSnippet <|> escapedChar))
         .>> whiteSpace
-        |>> (fun s -> "\"" + s + "\"")
-        |>> Key
+        |>> (fun s -> Key("\"" + s + "\""))
         <?> "quoted key"
 
     let valueStr =
-        (many1SatisfyL isValueChar "value character") |>> string |>> String
+        (many1SatisfyL isValueChar "value character") |>> String
         <?> Resources.Parse_String
 
     let valueQ =
@@ -198,14 +197,15 @@ module internal SharedParsers =
         |>> QString
         <?> Resources.Parse_QuotedString
 
-    let valueBYes =
-        skipString "yes" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(true))
+    // NOTE: yes 和 no 是大小写敏感的
+    let valueBYes: Parser<Value,unit> =
+        skipString "yes" .>> nextCharSatisfiesNot isValueChar >>% Bool(true)
 
     let valueBNo =
-        skipString "no" .>> nextCharSatisfiesNot isValueChar |>> (fun _ -> Bool(false))
+        skipString "no" .>> nextCharSatisfiesNot isValueChar >>% Bool(false)
 
-    let valueInt = pint64 .>> nextCharSatisfiesNot isValueChar |>> int |>> Int
-    let valueFloat = pfloat .>> nextCharSatisfiesNot isValueChar |>> decimal |>> Float
+    let valueInt = pint64 .>> nextCharSatisfiesNot isValueChar |>> (fun int64 -> Int(int int64))
+    let valueFloat = pfloat .>> nextCharSatisfiesNot isValueChar |>> (fun f -> Float (decimal f))
 
     let hsvI =
         clause (
