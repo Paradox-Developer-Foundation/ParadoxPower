@@ -1,7 +1,7 @@
 namespace ParadoxPower.Localisation
 
 open System
-open System.Runtime.CompilerServices
+open System.Collections.Generic
 open ParadoxPower.Parser.SharedParsers
 open ParadoxPower.Utilities.Position
 
@@ -9,7 +9,9 @@ open ParadoxPower.Utilities.Position
 module YAMLLocalisationParser =
     open FParsec
 
-    type LocFile = { Key: string; Entries: Entry list }
+    type LocFile =
+        { Key: string
+          Entries: Entry IReadOnlyCollection }
 
     let inline private isLocValueChar (c: char) =
         isAsciiLetter c
@@ -58,17 +60,26 @@ module YAMLLocalisationParser =
             elementParser = p,
             stateFromFirstElement =
                 (fun (value: Option<'a>) ->
-                    let list = []
-                    if value.IsSome then value.Value :: list else list),
-            foldState = (fun (list: 'a list) newValue -> if newValue.IsSome then newValue.Value :: list else list),
-            resultFromState = List.rev,
-            resultForEmptySequence = (fun () -> [])
+                    let list = new LinkedList<'a>()
+
+                    if value.IsSome then
+                        list.AddLast(value.Value) |> ignore
+
+                    list),
+            foldState =
+                (fun (list: LinkedList<'a>) newValue ->
+                    if newValue.IsSome then
+                        list.AddLast(newValue.Value) |> ignore
+
+                    list),
+            resultFromState = id,
+            resultForEmptySequence = (fun () -> LinkedList<_>())
         )
 
     let private file =
         spaces
         >>. many (attempt comment)
-        >>. pipe2 key (manyOption ((attempt comment |>> (fun _ -> None)) <|> (entry |>> Some)) .>> eof) (fun k es ->
+        >>. pipe2 key (manyOption ((attempt comment >>% None) <|> (entry |>> Some)) .>> eof) (fun k es ->
             { Key = k; Entries = es })
         <?> "file"
 

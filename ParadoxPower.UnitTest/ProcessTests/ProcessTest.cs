@@ -12,6 +12,7 @@ public class ProcessTest
     private const string Text = """
         # comment1
         key1 = value1
+        key2 = "value2"
         node1 = {
             key2 = value2
         }
@@ -28,7 +29,7 @@ public class ProcessTest
     [Test]
     public void LeavesTest()
     {
-        Assert.That(_root.Leaves.ToArray(), Has.Length.EqualTo(1));
+        Assert.That(_root.Leaves.ToArray(), Has.Length.EqualTo(2));
     }
 
     [Test]
@@ -56,6 +57,20 @@ public class ProcessTest
         var comments = _root.Comments.ToArray();
         Assert.That(comments, Has.Length.EqualTo(1));
         Assert.That(comments[0].Comment, Is.EqualTo(" comment1"));
+    }
+
+    [Test]
+    public void LeafParseResultTest()
+    {
+        var key1 = _root.Leaves.First(leaf => leaf.Key == "key1");
+        var key2 = _root.Leaves.First(leaf => leaf.Key == "key2");
+
+        Assert.That(key1, Is.Not.Null);
+        Assert.That(key1.Value.ToRawString(), Is.EqualTo("value1"));
+        Assert.That(key1.Value.IsString, Is.True);
+        Assert.That(key2, Is.Not.Null);
+        Assert.That(key2.Value.ToRawString(), Is.EqualTo("value2"));
+        Assert.That(key2.Value.IsQString, Is.True);
     }
 
     [Test]
@@ -120,16 +135,19 @@ public class ProcessTest
         var children = _root.AllArray;
 
         Assert.That(children[0].TryGetComment(out var common), Is.True);
-        Assert.That(children[1].TryGetLeaf(out var leaf), Is.True);
-        Assert.That(children[2].TryGetNode(out var node), Is.True);
+        Assert.That(children[1].TryGetLeaf(out var leaf1), Is.True);
+        Assert.That(children[2].TryGetLeaf(out var leaf2), Is.True);
+        Assert.That(children[3].TryGetNode(out var node), Is.True);
         Assert.That(common, Is.Not.Null);
-        Assert.That(leaf, Is.Not.Null);
+        Assert.That(leaf1, Is.Not.Null);
+        Assert.That(leaf2, Is.Not.Null);
         Assert.That(node, Is.Not.Null);
 
         Assert.Multiple(() =>
         {
             Assert.That(common.Comment, Is.EqualTo(" comment1"));
-            Assert.That(leaf.Key, Is.EqualTo("key1"));
+            Assert.That(leaf1.Key, Is.EqualTo("key1"));
+            Assert.That(leaf2.Key, Is.EqualTo("key2"));
             Assert.That(node.Key, Is.EqualTo("node1"));
         });
     }
@@ -140,10 +158,14 @@ public class ProcessTest
         var children = _root.AllArray;
 
         children[1].TryGetLeaf(out var leaf);
-        children[2].TryGetNode(out var node);
-        Assert.That(node!.Parent, Is.SameAs(_root));
-        Assert.That(node.Parent.Parent, Is.Null);
-        Assert.That(leaf!.Parent, Is.SameAs(_root));
-        Assert.That(leaf.Parent.Parent, Is.Null);
+        children[3].TryGetNode(out var node);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(node!.Parent, Is.SameAs(_root));
+            Assert.That(node.Parent.Parent, Is.Null);
+            Assert.That(leaf!.Parent, Is.SameAs(_root));
+            Assert.That(leaf.Parent.Parent, Is.Null);
+        });
     }
 }

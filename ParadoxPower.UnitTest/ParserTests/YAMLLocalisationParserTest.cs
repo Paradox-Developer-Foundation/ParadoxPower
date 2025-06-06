@@ -58,7 +58,7 @@ public sealed class YAMLLocalisationParserTest
         Assert.That(key5.Desc, Is.EqualTo("va\"lue5"));
         Assert.That(key5.Value, Is.EqualTo('5'));
         Assert.That(key6.Desc, Is.EqualTo("value6"));
-        Assert.That(key1.Position, Is.EqualTo(result.Entries[0].Position));
+        Assert.That(key1.Position, Is.EqualTo(result.Entries.First().Position));
     }
 
     [Test]
