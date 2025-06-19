@@ -3,10 +3,7 @@ namespace ParadoxPower.Localisation
 open System
 open ParadoxPower.Utilities.Position
 
-[<Struct>]
-#if NET5_0_OR_GREATER
-[<System.Runtime.CompilerServices.IsReadOnly>]
-#endif
+[<NoEquality;NoComparison>]
 type Entry =
     { Key: string
       Value: Nullable<char>
