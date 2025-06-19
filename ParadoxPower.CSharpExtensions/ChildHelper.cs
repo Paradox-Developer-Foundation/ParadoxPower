@@ -9,17 +9,17 @@ public static class ChildHelper
 {
     public static Child Leaf(string key, int value, Types.Operator op = Types.Operator.Equals)
     {
-        return Child.Create(new Leaf(key, Types.Value.NewInt(value), op));
+        return new Leaf(key, Types.Value.NewInt(value), op);
     }
 
     public static Child Leaf(string key, bool value, Types.Operator op = Types.Operator.Equals)
     {
-        return Child.Create(new Leaf(key, Types.Value.NewBool(value), op));
+        return new Leaf(key, Types.Value.NewBool(value), op);
     }
 
     public static Child Leaf(string key, decimal value, Types.Operator op = Types.Operator.Equals)
     {
-        return Child.Create(new Leaf(key, Types.Value.NewFloat(value), op));
+        return new Leaf(key, Types.Value.NewFloat(value), op);
     }
 
     public static Child LeafString(
@@ -28,7 +28,7 @@ public static class ChildHelper
         Types.Operator op = Types.Operator.Equals
     )
     {
-        return Child.Create(new Leaf(key, Types.Value.NewStringValue(value), op));
+        return new Leaf(key, Types.Value.NewStringValue(value), op);
     }
 
     public static Child LeafQString(
@@ -37,12 +37,12 @@ public static class ChildHelper
         Types.Operator op = Types.Operator.Equals
     )
     {
-        return Child.Create(new Leaf(key, Types.Value.NewQStringValue(value), op));
+        return new Leaf(key, Types.Value.NewQStringValue(value), op);
     }
 
     public static Child Node(string key)
     {
-        return Child.Create(new Node(key));
+        return new Node(key);
     }
 
     public static Child Node(string key, IEnumerable<Child> children)
@@ -53,16 +53,16 @@ public static class ChildHelper
     public static Child Node(string key, Child[] children)
     {
         var node = new Node(key) { AllArray = children };
-        return Child.Create(node);
+        return node;
     }
 
     public static Child LeafValue(string value)
     {
-        return Child.Create(Process.LeafValue.Create(Types.Value.NewStringValue(value)));
+        return Process.LeafValue.Create(Types.Value.NewStringValue(value));
     }
 
     public static Child LeafValue(int value)
     {
-        return Child.Create(Process.LeafValue.Create(Types.Value.NewInt(value)));
+        return Process.LeafValue.Create(Types.Value.NewInt(value));
     }
 }

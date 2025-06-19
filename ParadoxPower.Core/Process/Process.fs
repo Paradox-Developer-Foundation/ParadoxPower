@@ -57,6 +57,8 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
     val mutable Operator: Operator
 
     member this.ValueText = this.Value.ToRawString()
+    static member op_Implicit(leaf: Leaf) : Child =
+        Child.LeafChild leaf
 
     member this.ToRaw =
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key(this.Key), this.Value, this.Operator)))
@@ -94,6 +96,8 @@ and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
     member val Position = defaultArg pos Range.Zero
     member this.ToRaw = Value(this.Position, this.Value)
     static member Create value = LeafValue value
+    static member op_Implicit(leafValue: LeafValue) : Child =
+        Child.LeafValueChild leafValue
 
     interface IKeyPos with
         member this.Key = this.Key
@@ -136,6 +140,9 @@ and ValueClause(keys: Value[], pos: Range) =
     let mutable all: Child array = Array.empty
 
     new() = ValueClause([||], Range.Zero)
+    
+    static member op_Implicit(valueClause: ValueClause) : Child =
+        Child.ValueClauseChild valueClause
 
     member val Position = pos
     member val Scope: Scope = scopeManager.AnyScope with get, set
@@ -300,6 +307,8 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     let mutable all: Child array = Array.empty
 
     new(key: string) = Node(key, Range.Zero)
+    static member op_Implicit(node: Node) : Child =
+        Child.NodeChild node
 
     member val Key: string = key
 
