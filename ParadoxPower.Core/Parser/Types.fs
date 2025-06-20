@@ -73,13 +73,7 @@ module Types =
         | Int of int
         | Bool of bool
         | Clause of Statement list
-        
-        static member NewStringValue(s: string) =
-             Value.String(s)
-        
-        static member NewQStringValue(s: string) =
-             Value.QString(s)
-        
+
         override x.ToString() =
             match x with
             | Clause b -> $"{{ {b} }}"
