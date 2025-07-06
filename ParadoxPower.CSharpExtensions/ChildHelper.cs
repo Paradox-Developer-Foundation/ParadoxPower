@@ -28,7 +28,7 @@ public static class ChildHelper
         Types.Operator op = Types.Operator.Equals
     )
     {
-        return new Leaf(key, Types.Value.NewStringValue(value), op);
+        return new Leaf(key, Types.Value.NewString(value), op);
     }
 
     public static Child LeafQString(
@@ -37,7 +37,7 @@ public static class ChildHelper
         Types.Operator op = Types.Operator.Equals
     )
     {
-        return new Leaf(key, Types.Value.NewQStringValue(value), op);
+        return new Leaf(key, Types.Value.NewQString(value), op);
     }
 
     public static Child Node(string key)
@@ -58,7 +58,7 @@ public static class ChildHelper
 
     public static Child LeafValue(string value)
     {
-        return Process.LeafValue.Create(Types.Value.NewStringValue(value));
+        return Process.LeafValue.Create(Types.Value.NewString(value));
     }
 
     public static Child LeafValue(int value)

@@ -95,7 +95,7 @@ public class ProcessTest
     [Test]
     public void LeafTest()
     {
-        var leaf = new Leaf("key1", Types.Value.NewStringValue("value"), Types.Operator.Equals);
+        var leaf = new Leaf("key1", Types.Value.NewString("value"), Types.Operator.Equals);
         Assert.Multiple(() =>
         {
             Assert.That(leaf.Key, Is.EqualTo("key1"));
@@ -108,7 +108,7 @@ public class ProcessTest
     [Test]
     public void LeafValuesTest()
     {
-        var leaf = LeafValue.Create(Types.Value.NewStringValue("value"));
+        var leaf = LeafValue.Create(Types.Value.NewString("value"));
         Assert.That(leaf.Value.ToRawString(), Is.EqualTo("value"));
         Assert.That(leaf.Key, Is.EqualTo(leaf.Value.ToRawString()));
         Assert.That(leaf.ValueText, Is.EqualTo(leaf.Value.ToRawString()));

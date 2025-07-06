@@ -51,7 +51,7 @@ public static class Extensions
         Types.Operator op = Types.Operator.Equals
     )
     {
-        node.AddChild(new Leaf(key, Types.Value.NewStringValue(value), op));
+        node.AddChild(new Leaf(key, Types.Value.NewString(value), op));
     }
 
     public static void AddLeafQString(
@@ -61,7 +61,7 @@ public static class Extensions
         Types.Operator op = Types.Operator.Equals
     )
     {
-        node.AddChild(new Leaf(key, Types.Value.NewQStringValue(value), op));
+        node.AddChild(new Leaf(key, Types.Value.NewQString(value), op));
     }
 
     /// <summary>

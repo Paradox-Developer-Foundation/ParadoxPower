@@ -93,7 +93,7 @@ public class ExtensionsTest
     [Test]
     public void TryGetStringValueTest()
     {
-        var value = Types.Value.NewStringValue("test");
+        var value = Types.Value.NewString("test");
 
         value.TryGetString(out string? stringValue).ShouldBeTrue();
         stringValue.ShouldBe("test");
@@ -107,7 +107,7 @@ public class ExtensionsTest
     [Test]
     public void TryGetQStringValueTest()
     {
-        var value = Types.Value.NewQStringValue("test");
+        var value = Types.Value.NewQString("test");
 
         value.TryGetQString(out string? qStringValue).ShouldBeTrue();
         qStringValue.ShouldBe("test");
