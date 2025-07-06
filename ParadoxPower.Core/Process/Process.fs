@@ -442,7 +442,7 @@ and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
     member this.SetLeafValue key leafValue =
         this.All <-
             let leaf =
-                Child.LeafChild(Leaf(key, Value.NewStringValue(leafValue), Range.Zero, Operator.Equals, this))
+                Child.LeafChild(Leaf(key, Value.String(leafValue), Range.Zero, Operator.Equals, this))
 
             all |> List.ofSeq |> List.replaceOrAdd (bothFind key) (fun _ -> leaf) leaf
 
