@@ -38,9 +38,9 @@ let inline (lsr) (x: int) (y: int) = int32 (uint32 x >>> y)
 #endif
 [<System.Diagnostics.DebuggerDisplay("{Line},{Column}")>]
 type pos(code: int32) =
-    new(l, c) =
-        let l = max 0 l
-        let c = max 0 c
+    new(line, column) =
+        let l = max 0 line
+        let c = max 0 column
         let p = (c &&& posColumnMask) ||| ((l <<< columnBitCount) &&& lineColumnMask)
         pos p
 
