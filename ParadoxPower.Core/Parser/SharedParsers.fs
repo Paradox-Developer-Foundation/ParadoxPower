@@ -177,7 +177,7 @@ module internal SharedParsers =
         <?> $"{Resources.Parse_Operator} 1"
 
     let comment =
-        parseWithPosition (skipChar '#' >>. restOfLine true .>> whiteSpace |>> string)
+        parseWithPosition (skipChar '#' >>. restOfLine true .>> whiteSpace)
         <?> Resources.Parse_Comment
 
     let key = (many1SatisfyL isIdChar "id character") .>> whiteSpace |>> Key <?> "id"
