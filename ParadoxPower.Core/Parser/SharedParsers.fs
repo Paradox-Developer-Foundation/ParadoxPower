@@ -159,14 +159,14 @@ module internal SharedParsers =
 
     // Base types
     // =======
-    let oppLTE = skipString "<=" |>> (fun _ -> Operator.LessThanOrEqual)
-    let oppGTE = skipString ">=" |>> (fun _ -> Operator.GreaterThanOrEqual)
-    let oppNE = skipString "!=" |>> (fun _ -> Operator.NotEqual)
-    let oppEE = skipString "==" |>> (fun _ -> Operator.EqualEqual)
-    let oppQE = skipString "?=" |>> (fun _ -> Operator.QuestionEqual)
-    let oppLT = skipChar '<' |>> (fun _ -> Operator.LessThan)
-    let oppGT = skipChar '>' |>> (fun _ -> Operator.GreaterThan)
-    let oppE = skipChar '=' |>> (fun _ -> Operator.Equals)
+    let oppLTE = skipString "<=" >>% Operator.LessThanOrEqual
+    let oppGTE = skipString ">=" >>% Operator.GreaterThanOrEqual
+    let oppNE = skipString "!=" >>% Operator.NotEqual
+    let oppEE = skipString "==" >>% Operator.EqualEqual
+    let oppQE = skipString "?=" >>% Operator.QuestionEqual
+    let oppLT = skipChar '<' >>% Operator.LessThan
+    let oppGT = skipChar '>' >>% Operator.GreaterThan
+    let oppE = skipChar '=' >>% Operator.Equals
 
     let operator =
         choiceL [ oppLTE; oppGTE; oppNE; oppEE; oppLT; oppGT; oppE; oppQE ] Resources.Parse_Operator
