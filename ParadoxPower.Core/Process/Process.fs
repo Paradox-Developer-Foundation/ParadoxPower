@@ -49,7 +49,7 @@ type IClause =
     abstract member Tag: string -> Value option
     abstract member TagText: string -> string
 
-and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
+and [<DebuggerDisplay("{Key}={ValueText}"); Sealed>] Leaf =
     val mutable Value: Value
     val mutable Key: string
     val mutable Position: Range
@@ -84,7 +84,7 @@ and [<DebuggerDisplay("{Key}={ValueText}")>] Leaf =
         member this.Key = this.Key
         member this.Position = this.Position
 
-and [<DebuggerDisplay("{Key}")>] LeafValue(value: Value, ?pos: Range) =
+and [<DebuggerDisplay("{Key}"); Sealed>] LeafValue(value: Value, ?pos: Range) =
     member val Value = value with get, set
 
     member this.ValueText = this.Value.ToRawString()
@@ -128,7 +128,7 @@ and Child =
         | LeafValueChild lv -> lv.Position
         | ValueClauseChild vc -> vc.Position
 
-and ValueClause(keys: Value[], pos: Range) =
+and [<Sealed>] ValueClause(keys: Value[], pos: Range) =
     let mutable _keys: string array = keys |> Array.map (fun v -> v.ToString())
 
     let bothFind (x: string) =
@@ -297,7 +297,7 @@ and ValueClause(keys: Value[], pos: Range) =
         member this.TagText x = this.TagText x
         member this.Tag x = this.Tag x
 
-and [<DebuggerDisplay("{Key}")>] Node(key: string, pos: Range) =
+and [<DebuggerDisplay("{Key}"); Sealed>] Node(key: string, pos: Range) =
     let bothFind (key: string) =
         function
         | NodeChild n when n.Key == key -> true

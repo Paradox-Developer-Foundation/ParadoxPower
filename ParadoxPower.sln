@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35208.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ParadoxPower.Core", "ParadoxPower.Core\ParadoxPower.fsproj", "{DFB04BD1-E94C-4A4B-8F43-89EB78C43375}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ParadoxPower", "ParadoxPower.Core\ParadoxPower.fsproj", "{DFB04BD1-E94C-4A4B-8F43-89EB78C43375}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxPower.Benchmark", "ParadoxPower.Benchmark\ParadoxPower.Benchmark.csproj", "{BFD94833-C7D5-44E6-855B-2CE168E686B1}"
 EndProject
@@ -15,8 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxPower.CSharpExtensio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9C5880E-69FD-41FB-84E7-1328A310BEDC}"
 	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
 		.gitignore = .gitignore
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxPower.Languages", "ParadoxPower.Languages\ParadoxPower.Languages.csproj", "{1DD24681-556F-4068-8490-C437CF1D236A}"
