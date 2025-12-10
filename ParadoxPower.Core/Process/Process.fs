@@ -512,6 +512,28 @@ and [<DebuggerDisplay("{Key}"); Sealed>] Node(key: string, pos: Range) =
 
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause(List.ofSeq children), Operator.Equals)))
 
+    member this.Clone() : Node =
+            let rec mapChild parent =
+                function
+                | NodeChild node ->
+                    let newNode = Node(node.Key, node.Position)
+                    newNode.Parent <- parent
+                    newNode.AllArray <- node.AllArray |> Array.map (mapChild node)
+                    NodeChild newNode
+                | LeafChild l -> LeafChild(Leaf(l.Key, l.Value, l.Position, l.Operator, parent))
+                | LeafValueChild lv -> LeafValueChild(LeafValue(lv.Value, lv.Position))
+                | ValueClauseChild vc ->
+                    let newVC = ValueClause([||], vc.Position)
+                    // TODO: 如果以后 ValueClause 添加了 Parent 属性, 这里需要修改为传入 vc 而不是 parent
+                    newVC.AllArray <- vc.AllArray |> Array.map (mapChild parent)
+                    newVC.Keys <- vc.Keys
+                    ValueClauseChild newVC
+                | CommentChild c -> CommentChild c
+
+            let newNode = Node(key, pos)
+            newNode.AllArray <- all |> Array.map (mapChild newNode)
+            newNode
+    
     static member Create key = Node(key)
 
     interface IKeyPos with
@@ -528,6 +550,7 @@ and [<DebuggerDisplay("{Key}"); Sealed>] Node(key: string, pos: Range) =
         member this.ClauseList = this.Clauses |> List.ofSeq
         member this.TagText x = this.TagText x
         member this.Tag x = this.Tag x
+   
 
 module ProcessCore =
 
