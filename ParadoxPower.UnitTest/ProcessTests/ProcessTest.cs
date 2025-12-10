@@ -1,5 +1,4 @@
-﻿using ParadoxPower.CSharp;
-using ParadoxPower.CSharpExtensions;
+﻿using ParadoxPower.CSharpExtensions;
 using ParadoxPower.Parser;
 using ParadoxPower.Process;
 using ParadoxPower.Utilities;
@@ -167,5 +166,28 @@ public class ProcessTest
             Assert.That(leaf!.Parent, Is.SameAs(_root));
             Assert.That(leaf.Parent.Parent, Is.Null);
         });
+    }
+
+    [Test]
+    public void CloneTest()
+    {
+        var newNode = _root.Clone();
+
+        Assert.That(newNode, Is.Not.SameAs(_root));
+        using (Assert.EnterMultipleScope())
+        {
+            var newChildNode = newNode.Nodes.First();
+            Assert.That(newNode.Key, Is.EqualTo(_root.Key));
+            Assert.That(newNode.Position, Is.EqualTo(_root.Position));
+            Assert.That(newNode.AllArray, Has.Length.EqualTo(_root.AllArray.Length));
+            Assert.That(newChildNode.Parent, Is.Not.SameAs(_root.Nodes.First().Parent));
+            Assert.That(newChildNode.Parent, Is.SameAs(newNode));
+            Assert.That(newNode.Leaves.First().Parent, Is.Not.SameAs(_root.Leaves.First().Parent));
+            Assert.That(newNode.Leaves.First().Parent, Is.SameAs(newNode));
+            foreach (var (child, newChild) in _root.AllArray.Zip(newNode.AllArray))
+            {
+                Assert.That(newChild, Is.Not.SameAs(child));
+            }
+        }
     }
 }
