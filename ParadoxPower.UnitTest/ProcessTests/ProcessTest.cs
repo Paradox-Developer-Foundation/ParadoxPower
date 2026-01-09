@@ -190,4 +190,22 @@ public class ProcessTest
             }
         }
     }
+
+    [Test]
+    public void CloneParentTest()
+    {
+        var rawNode = _root.Nodes.First();
+        var newNode = rawNode.Clone();
+
+        Assert.That(newNode, Is.Not.SameAs(rawNode));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(newNode.Key, Is.EqualTo(rawNode.Key));
+            Assert.That(newNode.Position, Is.EqualTo(rawNode.Position));
+            Assert.That(newNode.AllArray, Has.Length.EqualTo(rawNode.AllArray.Length));
+            Assert.That(newNode.Parent, Is.Not.SameAs(rawNode.Parent));
+            Assert.That(rawNode.Parent, Is.Not.Null);
+            Assert.That(newNode.Parent, Is.Null);
+        }
+    }
 }

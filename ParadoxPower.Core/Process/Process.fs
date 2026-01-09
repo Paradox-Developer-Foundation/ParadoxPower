@@ -512,6 +512,7 @@ and [<DebuggerDisplay("{Key}"); Sealed>] Node(key: string, pos: Range) =
 
         KeyValue(PosKeyValue(this.Position, KeyValueItem(Key this.Key, Clause(List.ofSeq children), Operator.Equals)))
 
+    /// 深克隆节点, 包括所有 Child, 但不包括 Parent 引用
     member this.Clone() : Node =
             let rec mapChild parent =
                 function
